@@ -1,0 +1,1343 @@
+#include "rwmake.ch"
+#include "protheus.ch"                                
+// Se utiliza el parametro MV_MCIIBBS con valor T para que al apendar en la SFH agregue clientes en IB2 
+// Para todas las provincias que el cliente esta cargado en la SA1. 
+// Si tiene valor F solo apenda para la provincia BA.
+// Si no existe el parametro toma por defecto T.
+
+//-------------------------------------- Desde aqui Agrego del fuente de Felipe
+
+#DEFINE _nFTamLin 32  // Tamanho inicial do buffer de leitura do arquivo texto.
+
+Static _aUse    := {} // Arquivos que estao em uso.
+Static _nFUse   := 0  // Numero do arquivo aberto.
+Static _nRecNo  := 1  // Numero da linha onde o ponteiro se encontra.
+Static _nPosAtu := 0  // Posicao do arquivo onde o ponteiro se encontra.
+Static _nPosFim := 0  // Posicao final do arquivo.
+
+Static _nPosPro := 0  // Posicao da proxima quebra do buffer.
+Static _cBuffer := "" // Buffer de leitura do arquivo texto.
+
+// Variaveis para otimizar o tamanho da linha que o sistema deve ler por vez.
+Static _nTamUlt := 0  // Tamanho da ultima linha lida.
+Static _nTamQtd := 0  // Quantidade de linhas lidas.
+Static _nTamMed := 0  // Tamanho medio das linhas lidas.
+Static _nTamQdp := 0  // Quantidade de itens utilizados para o calculo do desvio padrao.
+Static _nTamDsp := 0  // Desvio padrao do tamanho das linhas.
+Static _nTamOtm := 0  // Tamanho otimizado do buffer de leitura.
+
+//--------------------------------------------------- Hasta aqui Agrego del fuente de Felipe
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณ ARBAIIBB    บAutor  ณMC               บFecha ณ  30/03/08   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ  Procesa a partir de un archivo TXT generado por la AFIP   บฑฑ
+ฑฑบ          ณ  actualizando las alicuotas de percep. / retenciones en 	  บฑฑ
+ฑฑบ				la tabla SFH                                              บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ AP Exclusivo PWA                                      	  บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+User FUNCTION ARBAIIBB()
+Local aArea    	:= GetArea()
+Local nDir	   	:= 0
+Local cSorcePa	:= GetSrvProfString("RootPath","")
+Local cDirArba	:= "padronarba\"
+Local cFilArba	:= "padronarba.txt" 
+     
+PRIVATE oDlg	:= Nil ,;  // objeto de dialogo
+        oFld 	:= Nil ,;  // objeto folder a   
+        oCombo	:= NIL ,;   // objeto combo
+        ochk  	:= Nil ,;   // objeto ckeck-up
+        oProcess:= NIL ,;   // objeto procesando..
+        cCombo  := space(13),;
+        cImpos	:= space(20),;
+        lChk    := .F.,;
+        lChk1   := .T.,;
+        cPath	:= "C:\",;
+        cPathNom:= "LOGIB.TXT",;
+        cFileLog:= cPath + cPathNom,;
+        lEnd 	:= .F.,;
+		lBtn1	:= .F.,;
+		lBtn2	:= .F.,;
+		nOpc	:= 0 ,;
+		lRet	:= .T.,;
+		nPercEmp:= 0
+
+Private _cBufImp:= ""
+Private lExispro:=.F.      
+Private aResult := {} 
+Private cPath1	:= cSorcePa + If(Right(cSorcePa,1)=="\","","\")
+Private cHoraIni:= "" 
+Private cHoraFin:= ""
+
+If !ExistDir(cPath1 + cDirArba )
+	nDir := MakeDir(cPath1 + cDirArba)
+Else
+	nDir := 0
+Endif
+
+if nDir== 0
+   cPath1+= cDirArba+cFilArba
+Endif
+//cPath1:='G:\mp11\Padrones\02-14\PADRON.TXT'
+#IFDEF TOP
+
+if ExistProc('ARGFIS001')	//Stored procedure para empresa compilado en SQL
+   lExispro:=.T.
+ENDIF         
+
+#ENDIF
+		
+RptStatus( { || SelectOpt() } )
+
+Ms_Flush()
+
+RestArea( aArea )
+RETURN nil
+
+/*-------------------------------------------------------------------------------------------------------*/
+STATIC FUNCTION SelectOpt()
+
+local nOpca		:= 0
+Local aCombo  	:= {} 
+Local cAtencao:= "Atencion"
+
+//+---------------------------
+//| Matriz Maestro a Procesar
+//+---------------------------
+aAdd( aCombo, "Ambos" )
+aAdd( aCombo, "Clientes" )
+aAdd( aCombo, "Proveedores" )
+
+//+----------------
+//| Objeto Dialogo
+//+----------------
+DEFINE MSDIALOG oDlg TITLE "Resolucion 70/07 para IIBB - ARBA -" FROM 0,0 TO 250,450 OF oDlg PIXEL
+ 
+@ 06,06 TO 40,170 LABEL "Info. Preliminar" OF oDlg PIXEL
+
+@ 11,10  SAY "Maestro :"     									SIZE  65,8 	PIXEL OF oFld
+@ 20,10  COMBOBOX oCombo VAR cCombo ITEMS aCombo 				SIZE  65,8 	PIXEL OF oFld   ON CHANGE ValidChk()
+
+//+----------------------
+//| Campos Check-Up
+//+----------------------
+@ 10,115 SAY "Impuesto: "										SIZE 65,8 PIXEL OF oFld
+
+@ 20,115 CHECKBOX oChk VAR lChk PROMPT "Percepcion" 			SIZE 40,8 PIXEL OF oFld ;
+         ON CHANGE ValidChk()
+@ 30,115 CHECKBOX oChk VAR lChk1 PROMPT "Retencion" 			SIZE 40,8 PIXEL OF oFld ;
+         ON CHANGE ValidChk()
+
+@ 41,06 FOLDER oFld OF oDlg PROMPT "&Act.Empr. Vs Z.Fiscal","&Act.Alic.s/Txt ARBA" PIXEL SIZE 165,075
+
+//+---------------
+//| Campos Folder 1
+//+---------------
+@ 05,05 SAY "Esta Opcion actualizara la Tabla Empresa Vs  "			SIZE 150,8	PIXEL OF oFld:aDialogs[1]
+@ 15,05 SAY "Z.Fiscal, verificando la inclusion del Cliente"		SIZE 150,8 	PIXEL OF oFld:aDialogs[1]
+@ 25,05 SAY "y/o Proveedor, necesario para el calculo de"			SIZE 150,8 	PIXEL OF oFld:aDialogs[1]
+@ 35,05 SAY "Percepcion y/o Retencion."								SIZE 150,8 	PIXEL OF oFld:aDialogs[1]
+ 
+//+----------------------------------------------------------------------------
+//| Boton de aDialog[1]
+//+----------------------------------------------------------------------------
+DEFINE SBUTTON FROM  24, 125 TYPE  1 ACTION (nOpc:=1,Proces1()) ENABLE OF oFld:aDialogs[1]
+
+//+----------------
+//| Campos Folder 2
+//+----------------
+@ 05, 05 SAY "Esta Opcion actualiza las alicuotas Proveed/Clie    "						SIZE  150, 8 PIXEL OF oFld:aDialogs[2]
+@ 15, 05 SAY "de la Tabla Empresa Vs Z. Fiscal segun Archivo      "						SIZE  150, 8 PIXEL OF oFld:aDialogs[2]
+@ 25, 05 SAY "TXT obtenido de RENTAS                              "						SIZE  150, 8 PIXEL OF oFld:aDialogs[2]
+//@ 40, 10 SAY "Alic.Perc. de ["+ ALLTRIM(SM0->M0_NOMECOM) + "] :"						SIZE  150,8	 PIXEL OF oFld:aDialogs[2]
+//@ 50, 40 MSGET nPercEmp PICTURE "@E 999.99" VALID nPercEmp >= 0 						SIZE  050,8  PIXEL OF oFld:aDialogs[2]
+
+//+----------------------------------------------------------------------------
+//| Boton de aDialog[2]
+//+----------------------------------------------------------------------------
+	
+	DEFINE SBUTTON FROM  24, 125 TYPE  1 ACTION (nOpc:=2,IIF(lChk1 == .F. .and. lChk == .F.,MsgAlert("Debe eliguir al menos una de las opciones para Actualizar"),LeeArTxt())) ENABLE OF oFld:aDialogs[2]/*ACTION (nOpc:=2,IIF(ValidPercEmp(),LeeArTxt(),""))*/
+
+//+-------------------
+//| Boton de MSDialog
+//+-------------------
+@ 60,178 BUTTON "&Salir" SIZE 36,16 PIXEL ACTION oDlg:End()
+@ 80,178 BUTTON "&Resumen" SIZE 36,16 PIXEL ACTION IIF(nOpc==1.OR.nOpc==2,verResu(),nOpc:=0)
+                         
+
+ACTIVATE MSDIALOG oDlg CENTER
+
+RETURN
+
+
+///////////////////////////////////////////////////////////////////////////////////
+//+-----------------------------------------------------------------------------+//
+//| PROGRAMA  | SelectOpt()  		 | AUTOR | MC		    | DATA | 18/01/2004 |//
+//+-----------------------------------------------------------------------------+//
+//| DESCRICAO | Funcao - Proces1()                                              |//
+//|           | Actualiza la Tabla SFH segun Maestro Cliente/proveedor          |//
+//|           | 											                    |//
+//+-----------------------------------------------------------------------------+//
+//| MANUTENCAO DESDE SUA CRIACAO                                                |//
+//+-----------------------------------------------------------------------------+//
+//| DATA     | AUTOR                | DESCRICAO                                 |//
+//+-----------------------------------------------------------------------------+//
+//|          |                      |                                           |//
+//+-----------------------------------------------------------------------------+//
+///////////////////////////////////////////////////////////////////////////////////
+Static Function Proces1()
+
+lBtn1:=.T.
+lBtn2:=.F.
+
+MsAguarde({|lEnd| RunProc1(@lEnd)},"Aguarde...","Processando " + cCombo,.T.)
+Return Nil
+
+///////////////////////////////////////////////////////////////////////////////////
+//+-----------------------------------------------------------------------------+//
+//| PROGRAMA  | Proces1()    | AUTOR | MC		  | DATA 		   | 18/01/2004 |//
+//+-----------------------------------------------------------------------------+//
+//| DESCRICAO | Funcao - RunProc1()                                             |//
+//|           | Funcao de processamento							                |//
+//|           |                                          						|//
+//+-----------------------------------------------------------------------------+//
+///////////////////////////////////////////////////////////////////////////////////
+Static Function RunProc1(lEnd,oObj)
+                   
+Local nCnt	:= 0
+Local cNome:=space(30)
+
+
+// borro resumen anterior
+IF File(cFileLog)
+	Ferase(cFileLog)
+Endif
+
+
+IF cCombo=="Clientes" .or. cCombo=="Ambos"
+
+	
+	IF lChk	// Check percepcion
+	
+		DbSelectArea ("SA1")
+		DbSetOrder (1)
+		DbGoTop ()
+
+		DbSelectArea ("SFH")
+		DbSetOrder (3)
+				
+		While SA1->(!Eof()) 
+			
+			If lEnd
+      			MsgInfo(cCancel,"Fin")
+      			Exit
+   			Endif
+   		   			
+   			cNome:=SA1->A1_NOME
+   			MsProcTxt("Cliente: "+Left(SA1->A1_NOME,1,30))
+			 			
+			If !SFH->(DbSeek (xFilial("SFH")+SA1->A1_COD+SA1->A1_LOJA+"IB2"+"BA"))  //.and. SA1->A1_EST == "BA"
+			   		If SA1->A1_TIPO $ "I|M"
+						RecLock("SFH", .T. )
+						SFH->FH_FILIAL	:=  xFilial("SFH")
+						SFH->FH_AGENTE	:= "S"
+						SFH->FH_ZONFIS	:= "BA"
+						SFH->FH_CLIENTE	:= SA1->A1_COD
+						SFH->FH_LOJA	:= SA1->A1_LOJA
+						SFH->FH_NOME	:= SA1->A1_NOME
+						SFH->FH_IMPOSTO	:= "IB2"
+						SFH->FH_PERCIBI	:= "S"	
+						SFH->FH_ISENTO	:= "N"		// SE TOMARA ALICUOTA DE SFF (ALICUOTA MAX.)
+						SFH->FH_PERCENT	:= 0
+						SFH->FH_APERIB	:= "S"
+						SFH->FH_ALIQ	:= 0
+						SFH->FH_COEFMUL	:= 0
+						MsUnlock()		
+						nCnt +=1 
+						AddArchResu(IIF(lBtn1,"AGREGA CLIENTE","MODIF.ALICUOTA"),+;
+						SFH->FH_IMPOSTO,SFH->FH_ZONFIS,STR(SFH->FH_ALIQ,5,2),Substr(cNome,1,20))
+			 		Endif
+			
+			ElseIf !SFH->(EOF()) .and. SA1->A1_TIPO $ "I|M"
+			
+				RecLock("SFH", .F. )
+				SFH->FH_ISENTO	:= "N"
+				SFH->FH_ALIQ	:= 0
+				MsUnlock()
+			
+			EndIf
+			
+			If !SFH->(DbSeek (xFilial("SFH")+SA1->A1_COD+SA1->A1_LOJA+"IB2"+SA1->A1_EST))
+				
+				if GetNewPar("MV_MCIIBBS",.T.) .and. SA1->A1_TIPO $ "I|M"
+						RecLock("SFH", .T. )
+						SFH->FH_FILIAL	:=  xFilial("SFH")
+						SFH->FH_AGENTE	:= "S"
+						SFH->FH_ZONFIS	:= SA1->A1_EST
+						SFH->FH_CLIENTE	:= SA1->A1_COD
+						SFH->FH_LOJA	:= SA1->A1_LOJA
+						SFH->FH_NOME	:= SA1->A1_NOME
+						SFH->FH_IMPOSTO	:= "IB2"
+						SFH->FH_PERCIBI	:= "S"	
+						SFH->FH_ISENTO	:= "S"
+						SFH->FH_PERCENT	:= 0
+						SFH->FH_APERIB	:= "S"
+						SFH->FH_ALIQ	:= 0
+						SFH->FH_COEFMUL	:= 0
+						MsUnlock()		
+						nCnt +=1
+						AddArchResu(IIF(lBtn1,"AGREGA CLIENTE","MODIF.ALICUOTA"),+;
+						SFH->FH_IMPOSTO,SFH->FH_ZONFIS,STR(SFH->FH_ALIQ,5,2),Substr(cNome,1,20)+" "+SA1->A1_COD+"/"+SA1->A1_LOJA)
+			    Endif
+			    
+			ElseiF !SFH->(EOF()) .and. SA1->A1_EST<>"BA" .and. SA1->A1_TIPO $ "I|M" .and. GetNewPar("MV_MCIIBBS",.T.)
+			   
+				RecLock("SFH", .F. )
+				SFH->FH_ISENTO	:= "S"
+				SFH->FH_ALIQ	:= 0
+				MsUnlock()
+			   
+			EndIf
+									
+			SA1->(DbSkip())
+	
+		EndDo
+		
+	Endif
+
+Endif
+
+IF cCombo=="Proveedores" .or. cCombo=="Ambos"
+		
+	DbSelectArea ("SA2")
+	DbSetOrder (1)
+	
+	DbSelectArea ("SFH")
+	DbSetOrder (1) // FILIAL + PROVEED + LOJA + IMPOSTO + ZONA FISCAL
+				
+	IF lChk1	// Check Retencion
+	
+		DbSelectArea ("SFH")
+		Set Filter To
+		Set Filter To FH_IMPOSTO=="IBR"
+					
+		SA2->(DbGoTop ())
+    		
+		While SA2->(!Eof())  
+		
+			IF SA2->A2_RETIB=='N'
+		 	  SA2->(DbSkip())
+		 	  loop
+			ENDIF
+		
+			If lEnd
+      			MsgInfo(cCancel,"Fin")
+      			Exit
+   			Endif                                         
+   		
+   			cNome:=SA2->A2_NOME
+   		
+   			MsProcTxt("Proveedor: "+Left(cNome,1,30))
+   			
+   			
+   			If !SFH->(DbSeek(xFilial("SFH")+SA2->A2_COD+SA2->A2_LOJA+"IBR"+"BA")) .and. SA2->A2_TIPO $ "I|M"
+				
+				RecLock("SFH", .T. )
+				SFH->FH_FILIAL		:= xFilial("SFH")
+				SFH->FH_AGENTE		:= "N"
+				SFH->FH_ZONFIS		:= "BA"
+				SFH->FH_FORNECE		:= SA2->A2_COD
+				SFH->FH_LOJA		:= SA2->A2_LOJA
+				SFH->FH_NOME		:= SA2->A2_NOME
+				SFH->FH_IMPOSTO		:= "IBR"	
+				SFH->FH_PERCIBI		:= "N"	
+				SFH->FH_ISENTO		:= "N"
+				SFH->FH_PERCENT		:= 0
+				SFH->FH_APERIB		:= "N"
+				SFH->FH_ALIQ		:= 0
+				SFH->FH_COEFMUL		:= 0
+				MsUnlock()		
+				nCnt +=1
+				AddArchResu	(IIF(lBtn1,"AGREGA PROVEED","MODIF.ALICUOTA"),+;
+							SFH->FH_IMPOSTO,SFH->FH_ZONFIS,STR(SFH->FH_ALIQ,5,2),Substr(cNome,1,20)+" "+SA2->A2_COD+"/"+SA2->A2_LOJA)
+			
+			ElseiF !SFH->(EOF()) .and. SA2->A2_TIPO $ "I|M" 
+			   
+				RecLock("SFH", .F. )
+				SFH->FH_ISENTO	:= "N"
+				SFH->FH_ALIQ	:= 0
+				MsUnlock()
+			   
+					
+			EndIf
+		    			
+			SA2->(DbSkip())
+	
+		EndDo
+					
+	Endif
+		
+	IF lChk	// Check percepcion
+	    
+		DbSelectArea ("SFH")
+		Set Filter To
+		Set Filter To FH_IMPOSTO=="IB2"
+		
+		SA2->(DbGoTop()) 
+					
+		While SA2->(!Eof()) 
+			
+			If lEnd
+      			MsgInfo(cCancel,"Fin")
+      			Exit
+   			Endif
+   		
+   			If SA2->A2_PERCIB=='N'       // AGENTE PERCEPCION
+   				SA2->(DbSkip())
+   				Loop
+   			endif
+   		
+   			cNome:=SA2->A2_NOME
+   			MsProcTxt("Proveed: "+Left(SA2->A2_NOME,1,30))
+									
+			If !SFH->(DbSeek (xFilial("SFH")+SA2->A2_COD+SA2->A2_LOJA+"IB2"+"BA"))
+				
+				RecLock("SFH", .T. )
+				SFH->FH_FILIAL	:=  xFilial("SFH")
+				SFH->FH_AGENTE	:= "S"
+				SFH->FH_ZONFIS	:= "BA"
+				SFH->FH_FORNECE	:= SA2->A2_COD
+				SFH->FH_LOJA	:= SA2->A2_LOJA
+				SFH->FH_NOME	:= SA2->A2_NOME
+				SFH->FH_IMPOSTO	:= "IB2"	
+				SFH->FH_PERCIBI	:= "S"	
+				SFH->FH_ISENTO	:= "N"
+				SFH->FH_PERCENT	:= 0
+				SFH->FH_APERIB	:= "S"
+				SFH->FH_ALIQ	:= 0
+				SFH->FH_COEFMUL	:= 0
+				MsUnlock()		
+				nCnt +=1
+				AddArchResu(IIF(lBtn1,"AGREGA PROVEED","MODIF.ALICUOTA"),+;
+							SFH->FH_IMPOSTO,SFH->FH_ZONFIS,STR(SFH->FH_ALIQ,5,2),Substr(cNome,1,20))
+			EndIf
+			
+			SA2->(DbSkip())
+	
+		EndDo
+				
+	Endif
+
+Endif
+
+MsgInfo("Fueron adicionados: " + AllTrim(Str(nCnt))+ " registros",FunName())
+
+SA2->( DbCloseArea() )
+SFH->( DbCloseArea() )
+	
+Return
+ 
+///////////////////////////////////////////////////////////////////////////////////
+//+-----------------------------------------------------------------------------+//
+//| PROGRAMA  | ProcesaIIBB.prw  | AUTOR | MC	  | DATA 		   | 18/03/2008 |//
+//+-----------------------------------------------------------------------------+//
+//| DESCRICAO | Funcao - VerResu()                                              |//
+//|           | Muestra archivo Resumen del procesamiento realizado             |//
+//|           | 						                                        |//
+//+-----------------------------------------------------------------------------+//
+///////////////////////////////////////////////////////////////////////////////////
+Static Function VerResu()
+Local oDlg
+Local cMemo
+Local cFile    :=""
+Local cMask    := "Arquivos Texto (*.TXT) |*.txt|"
+Local oFont 
+
+If Empty(cFileLog)
+	DEFAULT cFileLog := Criatrab(,.f.)+".LOG"
+Endif
+
+DEFINE FONT oFont NAME "Courier New" SIZE 5,0   
+
+cMemo :=MemoRead(cFileLog)
+	
+DEFINE MSDIALOG oDlg TITLE "Resumen" From 3,0 to 340,417 PIXEL
+
+@ 5,5 GET oMemo  VAR cMemo MEMO SIZE 200,145 OF oDlg PIXEL 
+oMemo:bRClicked := {||AllwaysTrue()}
+oMemo:oFont:=oFont
+
+DEFINE SBUTTON  FROM 153,175 TYPE 1 ACTION oDlg:End() ENABLE OF oDlg PIXEL //Salir
+DEFINE SBUTTON  FROM 153,145 TYPE 13 ACTION (cFile:=cGetFile(cMask,OemToAnsi("Salvar Como...")),If(cFile="",.t.,MemoWrite(cFile,cMemo)),oDlg:End()) ENABLE OF oDlg PIXEL //Salva e Apaga //
+	
+ACTIVATE MSDIALOG oDlg CENTER
+
+
+
+Return
+
+///////////////////////////////////////////////////////////////////////////////////
+//+-----------------------------------------------------------------------------+//
+//| PROGRAMA  | ProcesaIIBB.prw  | AUTOR | MC	  | DATA 		   | 18/03/2008 |//
+//+-----------------------------------------------------------------------------+//
+//| DESCRICAO | Funcao - VerResu()                                              |//
+//|           | Muestra archivo Resumen del procesamiento realizado             |//
+//|           | 						                                        |//
+//+-----------------------------------------------------------------------------+//
+///////////////////////////////////////////////////////////////////////////////////
+Static Function AddArchResu(cMotivo,cImposto,cZonaFis,cAlic,cCliFor)
+
+If ! File(cFileLog)
+	If (nHandle2 := MSFCreate(cFileLog,0)) == -1
+		Return
+	EndIf
+Else
+	If (nHandle2 := FOpen(cFileLog,2)) == -1
+		Return
+	EndIf
+EndIf
+
+FSeek(nHandle2,0,2)
+FWrite(nHandle2,cMotivo+space(4)+cImposto+space(4)+cZonaFis+space(4)+cAlic+space(4)+cCliFor+chr(13)+chr(10),85)
+FClose(nHandle2)
+
+Return
+                               
+///////////////////////////////////////////////////////////////////////////////////
+//+-----------------------------------------------------------------------------+//
+//| PROGRAMA  | ProcesaIIBB.prw     | AUTOR | MC            | DATA | 18/01/2004 |//
+//+-----------------------------------------------------------------------------+//
+//| DESCRICAO | Funcao - u_LeeArTxt()                                          |//
+//|           | Fuente usado para importar datos de archivo TXT de la AFIP      |//
+//|           | a fin de actualizar alicuota de IB2/IBR                         |//
+//+-----------------------------------------------------------------------------+//
+///////////////////////////////////////////////////////////////////////////////////
+Static Function LeeArTxt()
+
+Local cTitulo1  := "Seleccione Archivo"
+Local cExtens   := "Archivo AFIP | *.TXT"
+Local cFile 	:= ""
+Local cFiles2	:= ""
+Local nPer		:= 0
+Local nRet		:= 0
+Local nCliFor	:= 0
+
+lBtn1:=.F.
+lBtn2:=.T.
+
+/* **
+ * _________________________________________________________
+ * cGetFile(<ExpC1>,<ExpC2>,<ExpN1>,<ExpC3>,<ExpL1>,<ExpN2>)
+ * ฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏฏ
+ * <ExpC1> - Expressao de filtro
+ * <ExpC2> - Titulo da janela
+ * <ExpN1> - Numero de mascara default 1 para *.Exe
+ * <ExpC3> - Diret๓rio inicial se necessแrio
+ * <ExpL1> - .F. botใo salvar - .T. botใo abrir
+ * <ExpN2> - Mascara de bits para escolher as op็๕es de visualiza็ใo do objeto (prconst.ch)
+ */
+
+cFiles := cGetFile(cExtens,cTitulo1,,,.T.)
+cFiles2:= cDirArba+cFilArba 
+If (cFiles == "")
+  Return
+EndIf 
+
+If (lChk == .T.)
+	nPer := 1
+EndIf
+ 
+If (lChk1 == .T.)
+	nRet := 1
+EndIf
+  
+IF lExispro 	//Existe stored procedure
+    cHoraIni:= DTOC(DATE())+" - "+Time()
+    MsgRun( "Aguarde...Creando Archivo Temporal" , "Padron ARBA" , { || lRet := __CopyFile( cFiles ,cFiles2 )})
+    If ! lRet
+		MsgAlert("Error Creando Archivo Temporal - ARBA")
+		Return (.F.)
+	Endif
+       
+    MsgRun( "Aguarde...Ejecutando stored procedure" , "Padron ARBA" , {|| aResult := TCSPEXEC( xProcedures('ARGFIS001'),;
+    																	cPath1,XFILIAL('SFH'),XFILIAL('SA2'),XFILIAL('SA1'),nPer,nRet,cCombo)})
+	                         
+	if Empty(aResult) .or. aResult[1] = "0"
+      MsgAlert("Error en la ejecucion del Store Procedure - ARGFIS001" + CHR(13) + "Proceso Interumpido!!!")
+      Ferase(cFiles2 )
+ 	Else
+	Ferase(cFiles2 )  
+    cHoraFin :=  DTOC(DATE())+" - "+Time()
+	    MSGINFO("Proceso Terminado con Exito !!! "+CHR(13)+"Inicio: "+cHoraIni+CHR(13)+"Fin: "+cHoraFin) 	
+	Endif                                                      
+   
+ELSE//no existe stored procedure
+	MsgAlert("No se puede ejecutar la actualizacion, comunicase con el soporte")
+	//MsAguarde({|lEnd| Import(cFiles,@lEnd)} ,"Leyendo Archivo, Aguarde...","Actualizacion de alicuotas" ,.T.)
+
+ENDIF
+                        
+
+Return(nil)              
+
+///////////////////////////////////////////////////////////////////////////////////
+//+-----------------------------------------------------------------------------+//
+//| PROGRAMA  | LeeArTxt.prw       | AUTOR | Robson Luiz  | DATA | 18/01/2004 |//
+//+-----------------------------------------------------------------------------+//
+//| DESCRICAO | Funcao - Import()                                               |//
+//|           | Fonte utilizado no curso oficina de programacao.                |//
+//|           | Funcao de importacao de dados                                   |//
+//+-----------------------------------------------------------------------------+//
+///////////////////////////////////////////////////////////////////////////////////
+/*
+Static function Import(cFiles, lEnd)
+
+Local cFilSFH := xFilial('SFH'),;
+      nRec    := 60 + 2,;
+      cLine   := Space(nRec),;
+      nLen    := 0,;
+      nByte   := 0,;
+ 	  aFields := Array( 0 ),;	     
+      aTam 	  := Array( 0 ),;	     
+      cNome	  := space(30),;
+      cCGC	  := space(11),;
+      nCnt	  := 0,;
+      lAvanzar	:= .F.,;
+      lAvanzarC	:= .F.,;
+      lAvanzarP	:= .F.,;            
+      lActualP	:= .F.,;      
+      lActualC	:= .F.,;      
+      lFinSA1	:= .F.,;
+      lFinSA2	:= .F.,;
+	  lNoAvanceP,;
+      lNoAvanceC,;      
+      nHnd     
+Local cHoraIni	:= Time()
+Local cHoraFin	:= ""             
+   
+// borro resumen anterior
+IF File(cFileLog)
+	Ferase(cFileLog)
+Endif
+
+/**********************
+Estructura Archivo AFIP
+-----------------------
+0        1         2         3         4         5         6         7         8         9         100
+1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+
+21022008;01032008;31032008;20000000028;D;N;S;5,00;1,50;14;09
+
+12345678;  -> FECHA PUBLICACION PADRON
+         12345678;  -> FECHA VIGENCIA DESDE      
+                  12345678; -> FECHA VIGENCIA HASTA
+                           12345678901;  -> CUIT CONTRIBUYENTE
+                                       1;  	 -> MARCA TIPO CONTRIB. ("D" o "C")
+                                         1; 	  -> MARCA ALTA SUJETOS ("S" o "N")
+                                           1;	     -> MARCA CAMBIO ALICUOTA ("S" o "N")
+                                             1234;  	    -> ALICUOTA PERCEP EN %
+                                                  1234;  	    -> ALICUOTA RETENCION EN %
+                                                              
+
+DbSelectArea("SA1")
+DbSetOrder(3)        // Filial + CUIT
+DbSelectArea("SA2")
+DbSetOrder(3)        // Filial + CUIT
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณLeitura do Arquivo.ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+
+FUSE(cFiles) //FT_FUSE(cFiles)
+
+If cCombo=="Clientes" 
+	lAvanzarP := .T.
+	lFinSA2 := .T.
+ElseIf cCombo=="Proveedores" 
+	lAvanzarC := .T.
+	lFinSA1 := .T.
+Endif
+If !FEOF() //!FT_FEOF()
+	cLine := FReadLN(.F.) //FT_FREADLN()             
+	cCgc:=SubStr(cLine, 28,11)
+    nPer:=Val(Replace(SubStr(cLine, 46,4),",","."))
+    nRet:=Val(Replace(SubStr(cLine, 51,4),",","."))	    	
+	SA1->(DbSeek(xFilial("SA1") +cCgc+"  ",.T.))
+	SA2->(DbSeek(xFilial("SA2") +cCgc+"  ",.T.))
+Endif                                           
+nContador:=0             
+nContT:= 5000
+Do While !FEOF() .and. (!lFinSA1 .or. !lFinSA2) //!FT_FEOF() .and. (!lFinSA1 .or. !lFinSA2)
+    nContador++         
+    If nContador > nContT
+    	MsProcTxt("Registro: "+STR(nContador,10))
+    	nContT := nContT + 5000
+    Endif
+	If lAvanzar 
+		lAvanzar := .F.
+		cLine := FReadLN(.F.) //FT_FREADLN()
+	    cCgc:=SubStr(cLine, 28,11)
+	    nPer:=Val(Replace(SubStr(cLine, 46,4),",","."))
+	    nRet:=Val(Replace(SubStr(cLine, 51,4),",","."))	    
+	Endif
+    IF (cCombo=="Clientes" .or. cCombo=="Ambos") .and. !lFinSA1 .and. !lActualC
+       
+       IF lChk	// Check percepcion
+          If !SA1->(EOF()) .and. alltrim(SA1->A1_CGC) == cCgc
+           		lActualC := .T.
+                cNome:=SA1->A1_NOME
+				DbSelectArea ("SFH")
+				DbSetOrder(3)   
+				IF SFH->(DbSeek(xFilial("SFH")+SA1->A1_COD))
+				   While !SFH->(Eof())  .and. SFH->FH_CLIENTE==SA1->A1_COD 
+				      IF SFH->FH_IMPOSTO=="IB2" 
+								RecLock("SFH", .F. )
+								SFH->FH_ALIQ	:= nPer
+								If (nPer == 0) .or. SA1->A1_AGENPER == "N"  // PERCIBIR IB
+									SFH->FH_ISENTO		:= "S"
+								Else
+									SFH->FH_ISENTO		:= "N"
+								EndIf
+								IF FieldPos("FH_FEACT") > 0
+									SFH->FH_FEACT:=dDatabase
+								Endif
+								MsUnlock()
+						   	AddArchResu	(IIF(lBtn1,"AGREGA CLIENTE","MODIF.ALICUOTA"),SFH->FH_IMPOSTO,SFH->FH_ZONFIS,STR(SFH->FH_ALIQ,5,2),Substr(cNome,1,20))
+								nCnt+=1  
+						ENDIF
+				      SFH->(DbSkip())
+				   Enddo
+				ENDIF          
+           ENDIF
+       	ENDIF  
+       	If alltrim(SA1->A1_CGC) < cCgc  
+        	SA1->(DbSkip()) 
+        	lNoAvanceC := .T.
+       	Else                 
+        	lNoAvanceC := .F.
+       	Endif         
+		
+		If SA1->(EOF())
+			lFinSA1 := .T.
+		Endif
+		If !lFinSA1 .and. alltrim(SA1->A1_CGC) >= cCgc .and. !lNoAvanceC
+			lAvanzarC := .T.
+		Endif
+    ENDIF   
+    
+	IF (cCombo=="Proveedores" .or. cCombo=="Ambos") .and. !lFinSA2.and. !lActualP
+  		  	//cCgc:= transform(cCgc,PesqPict("SA2","A2_CGC"))
+  		  	If alltrim(SA2->A2_CGC) == cCgc 
+       			lActualP := .T.
+				cNome:=SA2->A2_NOME
+			    
+			    DbSelectArea ("SFH")
+			    DbSetOrder(1)   
+				IF SFH->(DbSeek(xFilial("SFH")+SA2->A2_COD))
+					   While !SFH->(Eof())  .and. SFH->FH_FORNECE==SA2->A2_COD 
+					   		
+					   		IF lChk1   // Check retencion
+					   			IF SFH->FH_IMPOSTO=="IBR" .and. SFH->FH_ALIQ <> nRet .and. SFH->FH_ZONFIS=="BA"
+									RecLock("SFH", .F. )
+									SFH->FH_ALIQ	:= nRet
+									If (nRet == 0)
+										SFH->FH_ISENTO		:= "S"
+									Else
+										SFH->FH_ISENTO		:= "N"
+									EndIf
+									
+									IF FieldPos("FH_FEACT") > 0
+										SFH->FH_FEACT:=dDatabase
+									Endif
+									MsUnlock()
+									AddArchResu	(IIF(lBtn1,"AGREGA PROVEED","MODIF.ALICUOTA"),SFH->FH_IMPOSTO,SFH->FH_ZONFIS,STR(SFH->FH_ALIQ,5,2),Substr(cNome,1,20))
+									nCnt+=1  
+								ENDIF
+							Endif
+							//Checkea percepcion de IIBB. Para los proveedores la alicuota de percepcion
+							//corresponde a mi alicuota obtenida del archivo padron.         
+                        	IF lChk   
+							   IF SFH->FH_IMPOSTO=="IB2" .and. SFH->FH_ALIQ <> nPercEmp .and. SFH->FH_ZONFIS=="BA"
+									IF nPercEmp > 0									
+										RecLock("SFH", .F. )
+										SFH->FH_ALIQ	:= nPercEmp
+										IF SFH->FH_ISENTO =="S"
+											SFH->FH_ISENTO :="N"
+										Endif
+										IF FieldPos("FH_FEACT") > 0
+											SFH->FH_FEACT:=dDatabase
+										Endif
+										MsUnlock()
+										AddArchResu	(IIF(lBtn1,"AGREGA PROVEED","MODIF.ALICUOTA"),+;
+								        SFH->FH_IMPOSTO,SFH->FH_ZONFIS,STR(SFH->FH_ALIQ,5,2),Substr(cNome,1,20)) 
+								        nCnt+=1
+							   		// En caso de que Mi empresa tuviese Alicuota Cero (exento) en un determinado Mes 
+							   		// se debera colocar como exento.
+							   		ElseIF nPercEmp == 0
+							   			RecLock("SFH", .F. )
+										SFH->FH_ALIQ	:= nPercEmp
+							   			SFH->FH_ISENTO  :="S"
+							   			IF FieldPos("FH_FEACT") > 0
+											SFH->FH_FEACT:=dDatabase
+										Endif
+							   			MsUnlock()
+										AddArchResu	(IIF(lBtn1,"AGREGA PROVEED","MODIF.ALICUOTA"),+;
+								        SFH->FH_IMPOSTO,SFH->FH_ZONFIS,STR(SFH->FH_ALIQ,5,2),Substr(cNome,1,20)) 
+								        nCnt+=1
+							   		ENDIF
+							   ENDIF
+							ENDIF
+							
+							SFH->(DbSkip())
+					   
+					   Enddo
+				ENDIF
+           	ENDIF
+	       	If alltrim(SA2->A2_CGC) < cCgc  
+        		SA2->(DbSkip()) 
+        		lNoAvanceP := .T. 
+        	Else
+        		lNoAvanceP := .F.
+        	Endif         
+			If SA2->(EOF())
+				lFinSA2 := .T.
+			Endif		
+			If !lFinSA2 .and. alltrim(SA2->A2_CGC) >= cCgc .and. !lNoAvanceP
+	    		lAvanzarP := .T.
+	 		Endif
+	ENDIF
+	
+	If lAvanzarC .and. lAvanzarP
+		FSkip() //FT_FSKIP()
+		lAvanzar := .T.
+		If cCombo=="Proveedores"
+			lAvanzarP := .F.
+			lActualP	:= .F.
+		ElseIF cCombo=="Clientes"
+			lAvanzarC := .F.  
+			lActualC	:= .F.			
+		Else
+			lAvanzarP := .F.		
+			lAvanzarC := .F.		
+			lActualP	:= .F.			
+			lActualC	:= .F.
+		Endif
+	Endif 
+	If lEnd
+		MsgInfo(cCancel,"Fin")
+		Exit
+	Endif	
+EndDo
+
+cHoraFin := Time()
+
+MsgInfo("Fueron Modificados: " + AllTrim(Str(nCnt))+ " registros" + CHR(13) + "Inicio: " + alltrim(cHoraIni) + "     Fin: " + Alltrim(cHoraFin) ,FunName())
+
+SFH->(DbCloseArea())
+
+Return( nil )
+
+*/
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณValidChkบAutor  ณMS				     บ Data ณ  12/03/08   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Funcao p/ Validar Check-up							      บฑฑ
+ฑฑบ          ณ 										                      บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ AP                                                         บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static function ValidChk()
+
+Local lRet:=.T.
+	
+If lChk1 == .T. .and. cCombo=="Clientes"    // RETENCION    
+	lChk := .T.
+	lChk1 :=.F.
+	lRet:=.F.
+EndIf
+
+
+oChk:Refresh()
+
+Return (Lret)
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณ FUse     บ Autor ณ Felipe Raposo      บ Data ณ  02/10/03   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescricao ณ Abre o arquivo passado por parametro.                      บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Generico.                                                  บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+Static Function FUse(_cArquivo)
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณ Declaracao de variaveis.                                            ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+Local _nLenUse
+
+// Testa se eh para fechar o arquivo texto.
+If empty(_cArquivo) .and. (_nLenUse := len(_aUse)) > 0
+	fClose(_nFUse)
+	aDel(_aUse, _nLenUse)
+	aSize(_aUse, _nLenUse - 1)
+	_nLenUse--
+	If _nLenUse > 0
+		_nFUse   := _aUse[_nLenUse, 1]
+		_nRecNo  := _aUse[_nLenUse, 2]
+		_nPosAtu := _aUse[_nLenUse, 3]
+		_nPosFim := _aUse[_nLenUse, 4]
+		_nPosPro := _aUse[_nLenUse, 5]
+		_cBuffer := _aUse[_nLenUse, 6]
+	Endif
+Endif
+
+// Testa se eh para abrir o arquivo texto.
+If !empty(_cArquivo)
+	If (_nFUse := fOpen(_cArquivo, 68)) > 0
+		_nPosFim := fSeek(_nFUse, 0, 2)  // Conta quantos caracteres o arquivo tem.
+		FGoTop()  // Move para o inicio do arquivo.
+		aAdd(_aUse, {_nFUse, _nRecNo, _nPosAtu, _nPosFim, _nPosPro, _cBuffer, _cArquivo})
+		
+		// Variaveis para calcular melhor tamanho de buffer de leitura.
+		_nTamUlt := 0  // Tamanho da ultima linha lida.
+		_nTamQtd := 0  // Quantidade de linhas lidas.
+		_nTamMed := 0  // Tamanho medio das linhas lidas.
+		_nTamQdp := 0  // Quantidade de itens utilizados para o calculo do desvio padrao.
+		_nTamDsp := 0  // Desvio padrao do tamanho das linhas.
+		_nTamOtm := _nFTamLin  // Tamanho otimizado do buffer de leitura.
+	Else
+		_nPosFim := _nFUse
+		MsgAlert("O arquivo " + _cArquivo + " no puede ser abierto.", "Atencion")
+	Endif
+Endif
+
+Return(_nPosFim)
+
+///////////////////////////////////////////////////////////////////////////////////
+//+-----------------------------------------------------------------------------+//
+//| PROGRAMA  | ProcesaIIBB.prw  | AUTOR | MC	  | DATA 		   | 18/03/2008 |//
+//+-----------------------------------------------------------------------------+//
+//| DESCRICAO | Funcao - ValidPercEmp()                                         |//
+//|           | Muestra archivo Resumen del procesamiento realizado             |//
+//|           | 						                                        |//
+//+-----------------------------------------------------------------------------+//
+///////////////////////////////////////////////////////////////////////////////////
+Static Function ValidPercEmp()
+Local lRet:=.T.
+
+if lChk == .T. .and. (cCombo=="Proveedores" .or. cCombo=="Ambos")
+    if nPercEmp==0
+    	If MsgYesNo("Confirma Alicuota 0 (cero) para percep. en Proveedores ?")
+    		lRet:=.T.
+    	Else
+    		lRet:=.F.
+    	Endif
+    endif
+Endif
+
+Return lRet
+
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณFGoTop    บ Autor ณ Felipe Raposo      บ Data ณ  02/10/03   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescricao ณ Vai para o inicio do arquivo.                              บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Generico.                                                  บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+Static Function FGoTop()
+_nRecNo  := 1  // Linha 1.
+_nPosAtu := 0  // Caracter 0.
+_nPosPro := 0  // Proxima linha.
+_cBuffer := "" // Buffer de leitura.
+fSeek(_nFUse, 0, 0)  // Move para o inicio do arquivo.
+Return(nil)
+
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณ FEOF     บ Autor ณ Felipe Raposo      บ Data ณ  02/10/03   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescricao ณ Retorna .T. se o arquivo estiver no final.                 บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Generico.                                                  บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+Static Function FEOF()
+Return(_nPosAtu >= _nPosFim .and. empty(_cBuffer))
+
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณ FRecNo   บ Autor ณ Felipe Raposo      บ Data ณ  02/10/03   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescricao ณ Retona a linha em que o ponteiro do arquivo texto esta.    บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Generico.                                                  บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+Static Function FRecNo()
+Return(_nRecNo)
+
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณ FReadLN  บ Autor ณ Felipe Raposo      บ Data ณ  02/10/03   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescricao ณ Efetua a leitura da linha corrente do arquivo. Dependendo  บฑฑ
+ฑฑบ          ณ do parametro, tambem posiciona na linha posterior.         บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบParametrosณ _lSkip - vai para a proxima linha ao efetuar a leitura da  บฑฑ
+ฑฑบ          ณ          linha corrente (padrao .F.)                       บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบRetorno   ณ String com o conteudo da linha corrente do arquivo texto.  บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Generico.                                                  บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+Static Function FReadLN(_lSkip)
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณ Declaracao de variaveis.                                            ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+Local _cRet := ""
+Default _lSkip := .F.
+
+// Procura pela quebra da linha, se ela nao estiver no buffer.
+If _nPosPro == 0
+	LeArq()
+Endif
+
+// Se nao encontrou mais nenhuma quebra.
+If _nPosPro == 0
+	_cRet := _cBuffer
+Else
+	// Retorna o valor da linha corrente.
+	_cRet := left(_cBuffer, _nPosPro - 1)
+Endif
+
+// Se era para pular linha...
+If _lSkip
+	FSkip()
+Endif
+
+Return(_cRet)
+
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณ FSkip    บ Autor ณ Felipe Raposo      บ Data ณ  22/01/08   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescricao ณ Pula para a proxima linha do arquivo texto.                บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Generico.                                                  บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+Static Function FSkip()
+
+// Verifica antes se ja nao esta no final do arquivo.
+If !FEOF()
+	// Procura pela quebra da linha, se ela nao estiver no buffer.
+	If _nPosPro == 0
+		LeArq()
+	Endif
+	
+	// Calcula o melhor tamanho de buffer para a proxima leitura.
+	AtuTamLin(_nPosPro)
+	
+	// Atualiza o buffer.
+	_cBuffer := right(_cBuffer, max(0, len(_cBuffer) - _nPosPro - 1))
+	
+	// Busca a posicao da proxima linha.
+	_nPosPro := at(CRLF, _cBuffer)
+	
+	// Incrementa o numero do registro do arquivo.
+	_nRecNo ++
+Endif
+
+Return
+
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณ LeArq    บ Autor ณ Felipe Raposo      บ Data ณ  18/01/08   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescricao ณ Le o arquivo texto ate encontrar uma quebra de linha, ou   บฑฑ
+ฑฑบ          ณ chegar ao fim do arquivo.                                  บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Generico.                                                  บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+Static Function LeArq()
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณ Declaracao de variaveis.                                            ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+Local _nAt, _cBufTmp, _nLer, _nLido
+
+// Le o arquivo ate encontrar a quebra de linha ou ate acabar o arquivo.
+_cBufTmp := space(_nTamOtm)
+_nLer    := _nTamOtm
+_nLido   := _nLer
+Do While (_nAt := at(CRLF, _cBuffer)) == 0 .and. _nPosAtu < _nPosFim
+	_nLido := fRead(_nFUse, @_cBufTmp, _nLer)  // Leitura do arquivo.
+	_cBuffer += _cBufTmp
+	_nPosAtu += _nLido
+	If _nLido == _nLer .and. int(_nTamDsp) > _nLer * 0.05
+		_nLer  := int(_nTamDsp)
+		_nLido := _nLer
+	Endif
+EndDo
+
+// Atualiza ate que posicao do buffer vai a linha corrente.
+If _nAt > 0
+	_nPosPro := _nAt
+Else
+	_nPosPro := len(_cBuffer) + 1
+Endif
+
+Return
+
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณAtuTamLin บ Autor ณ Felipe Raposo      บ Data ณ  22/01/08   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescricao ณ Calcula o tamanho otimizado do buffer de leitura, de acordoบฑฑ
+ฑฑบ          ณ com o historico do arquivo, utilizando a media do tamanho  บฑฑ
+ฑฑบ          ณ das linhas e o desvio padrao.                              บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Generico.                                                  บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+Static Function AtuTamLin(_nTamLin)
+
+// Calcula o tamanho otimizado do buffer de leitura.
+_nTamUlt := _nTamLin  // Tamanho da ultima linha lida.
+_nTamMed := ((_nTamMed * _nTamQtd) + _nTamUlt) / (_nTamQtd + 1)  // Calcula a media.
+_nTamQtd ++  // Quantidade de linhas lidas.
+If (_nDesvio := _nTamUlt - _nTamMed) > 0  // Desvio positivo.
+	_nTamDsp := ((_nTamDsp * _nTamQdp) + _nDesvio) / (_nTamQdp + 1)  // Calcula o desvio padrao positivo.
+	_nTamQdp ++  // Quantidade de itens utilizados para o calculo do desvio padrao.
+Endif
+_nTamOtm := round(_nTamMed + (_nTamDsp * 1.1), 0)  // Le 10% a mais do que o necessario, para garantir encontrar a quebra.
+
+Return
+
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณ TiraAct  บ Autor ณ Felipe Raposo      บ Data ณ  04/12/03   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescricao ณ Tira os acentos do texto passado por parametro.            บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Generico.                                                  บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+Static Function TiraAct(_cTexto)
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณ Declaracao de variaveis.                                            ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+Local _cRet
+Local _nAux1, _nAux2, _cAux1, _cAux2, _cAux3, _aAux1
+
+// Trata os acentos do texto que sera exibido no console.
+_aAux1 := {;
+{"แเใโไช", "a"},;
+{"็",      "c"},;
+{"้่๊๋",   "e"},;
+{"ํ์๎๏",   "i"},;
+{"๑",      "n"},;
+{"๓๒๕๔๖บ", "o"},;
+{"๚๙๛ü",   "u"},;
+{"มภรยฤ",  "A"},;
+{"ว",      "C"},;
+{"ษศสห",   "E"},;
+{"อฬฮฯ",   "I"},;
+{"ั",      "N"},;
+{"ำาีิึ",  "O"},;
+{"ฺูÛÜ",   "U"}}
+
+_cRet := _cTexto
+For _nAux1 := 1 to len(_aAux1)
+	_cAux1 := _aAux1[_nAux1, 1]  // Caracteres as serem substituidos.
+	_cAux2 := _aAux1[_nAux1, 2]  // Caracter substituto.
+	For _nAux2 := 1 to len(_cAux1)
+		_cAux3 := SubStr(_cAux1, _nAux2, 1)    // Caracter a ser excluido (da vez).
+		_cRet  := StrTran(_cRet, _cAux3, _cAux2)
+	Next _nAux2
+Next _nAux1
+
+Return(_cRet)
+
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณ CtoA     บ Autor ณ Felipe Raposo      บ Data ณ  17/09/03   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescricao ณ Transforma texto, formado por itens separados por algum    บฑฑ
+ฑฑบ          ณ delimitador qualquer, em uma matriz.                       บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑบ          ณ O limitador de palavras podera ser definido pelo usuario e บฑฑ
+ฑฑบ          ณ passado por parametro. O padrao eh uma virgula e ponto e   บฑฑ
+ฑฑบ          ณ virgula.                                                   บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบParametro ณ _cTexto - texto que sera convertido em matriz.             บฑฑ
+ฑฑบ          ณ _cDelim - caracter delimitador de campos. Se nao passado,  บฑฑ
+ฑฑบ          ณ           o sistema assumira virgula ou ponto-virgula.     บฑฑ
+ฑฑบ          ณ _lRetAspas - informe ao sistema se devera retirar as aspas บฑฑ
+ฑฑบ          ณ              do caracter. Se nao for para retirar, o sis-  บฑฑ
+ฑฑบ          ณ              tema retornara os item com as aspas juntas. O บฑฑ
+ฑฑบ          ณ              padrao eh .T. (verdadeiro).                   บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบRetorno   ณ Uma matriz contendo itens do tipo caracter, onde cada item บฑฑ
+ฑฑบ          ณ eh um trecho do texto passado, separado pelo delimitador.  บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Generico.                                                  บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+Static Function CtoA(_cTexto, _cDelim, _lRetAspas)
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณ Declaracao de Variaveis                                             ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+Local _aRet := {}
+Local _nAux1, _cAux1 := "", _cAux2 := "", _cAbreCpo := ""
+Local _lDelim, _nTamTxt, _cAspas := "'" + '"'
+
+// Verifica os parametros passados.
+Default _cTexto    := ""
+Default _cDelim    := ";,"
+Default _lRetAspas := .F.
+
+// Pega o tamanho do campo.
+_nTamTxt := len(_cTexto)
+
+// Varre todo o texto passado por parametro, um caracter por vez.
+For _nAux1 := 1 to _nTamTxt
+	
+	// Pega o caracter da posicao.
+	_cAux1 := SubStr(_cTexto, _nAux1, 1)
+	
+	// Testa se eh um caracter delimitador.
+	// Nao considera delimitadores dentro do texto (entre aspas).
+	_lDelim := (_cAux1 $ _cDelim) .and. (empty(_cAbreCpo) .or. _cAbreCpo == right(AllTrim(_cAux2), 1))
+	
+	// Se nao for um caracter delimitador, inclui no campo.
+	If !_lDelim
+		// Se uma aspa for o primeiro caracter do campo...
+		If empty(_cAux2) .and. _cAux1 $ _cAspas
+			// ... armazena essa aspa em uma variavel auxiliar.
+			_cAbreCpo := _cAux1
+		Endif
+		
+		// Adiciona o caractere da posicao.
+		_cAux2 += _cAux1
+	Endif
+	
+	// Testa se eh fim do campo ou fim da linha.
+	If _lDelim .or. (_nAux1 == _nTamTxt)
+		// Verifica se abriu e fechou com aspas.
+		If _lRetAspas .and. !empty(_cAbreCpo) .and. right(AllTrim(_cAux2), 1) == _cAbreCpo
+			_cAux2 := AllTrim(_cAux2)
+			_cAux2 := right(_cAux2, len(_cAux2) - 1)  // Retira a aspa do inicio...
+			_cAux2 := left(_cAux2, len(_cAux2) - 1)   // ... e do final.
+		Endif
+		
+		// Adiciona o campo corrente na matriz que sera retornada.
+		aAdd(_aRet, _cAux2)
+		
+		// Zera as variaveis auxiliares.
+		_cAux2    := ""
+		_cAbreCpo := ""
+	Endif
+Next _nAux1
+Return(_aRet)
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑฺฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤฤยฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤยฤฤฤฤฤฤฤฤฤฤฟฑฑ
+ฑฑณFuncao    ณVerIDProc ณ Autor ณ Marcelo Pimentel      ณ Data ณ24.07.2007ณฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤดฑฑ
+ฑฑณDescri…o ณIdentifica a sequencia de controle do fonte ADVPL com a     ณฑฑ
+ฑฑณ          ณstored procedure, qualquer alteracao que envolva diretamenteณฑฑ
+ฑฑณ          ณa stored procedure a variavel sera incrementada.            ณฑฑ
+ฑฑณ          ณProcedure arfis001                                          ณฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ
+ฑฑณ   DATA   ณ Programador   ณManutencao Efetuada                         ณฑฑ
+ฑฑภฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤูฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/         
+Static Function VerIDProc()
+Return '001'

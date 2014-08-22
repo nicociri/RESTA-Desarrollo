@@ -1,0 +1,66 @@
+
+User Function quita()
+Local cprogram:= ALLTRIM(FUNNAME())
+
+If  cProgram $ "MATA462DN/MATA465N" 
+	If !Empty(M->F1_XNROACO)
+		Pendient()
+    EndIf
+Return
+
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³VALMONACO ºAutor  ³Microsiga           ºFecha ³  06/26/14   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³                                                            º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ AP                                                        º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+Static function Pendient()
+Local aAcopio   := {}
+Local cQuery    := ""	//Para ejecución de Query       
+Local dDias		:= (DATE()-GetMV( "MV_XDIANC" ))
+Local nPrecio	:=0
+Local nIncr		:=((M->F1_XPORC/100)+1)
+
+If nIncr==0
+	nIncr:=1
+Endif
+
+For nX := 1 To Len( aCols )
+      If GdDeleted()
+         Loop
+      EndIf
+      	cCod:=aCols[nX,GdFieldGet('D1_COD')]
+		cQuery := "SELECT TOP 1 D2_PRCVEN FROM " + RetSqlName("SD2") + " "
+		cQuery += "WHERE D_E_L_E_T_='' AND D2_COD= '" + cCod 
+		cQuery += "' and D2_EMISSAO>'"+dtoc(dDias)+"' and D2_CLIENTE='"+M->F1_FORNECE+"' and D2_LOJA='" +M->F1_LOJA+"' and D2_DOC=" 
+		cQuery += " (select MAX(F2_DOC) from "+ RetSqlName("SF2") +" where D_E_L_E_T_='' and F2_CLIENTE='"+M->F1_FORNECE+"' and F2_LOJA='"+M->F1_LOJA+"')"		
+		cQuery := PLSAvaSQL(cQuery)
+  		If Select("TODO01") <> 0
+			DBSelectArea("TODO01")
+			TODO01->(DBCloseArea())
+  		EndIf
+		PLSQuery(cQuery,"TODO01")
+		TODO01->(DBGoTop())
+		If !Empty (TODO01->D2_PRCVEN)
+			nPrecio:= TODO01->D2_PRCVEN
+		EndIf
+        If nPrecio>0
+         	aCols[nX,GdFieldGet('D1_VUNIT')]:=nPrecio * nIncr
+        Else  
+        	DA1->(DbSetOrder(1))
+   			If DA1->(dbseek(xFilial("DA1")+"001"+cCod)) 
+         		aCols[nX,GdFieldGet('D1_VUNIT')]:=DA1->DA1_PRCVEN * nIncr
+        	EndIf
+      	EndIf
+Next
+Return

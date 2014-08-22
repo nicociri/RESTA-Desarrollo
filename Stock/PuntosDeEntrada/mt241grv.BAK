@@ -1,0 +1,115 @@
+#Include'protheus.ch'
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  mt241grv     ºAutor  ³Microsiga           ºFecha ³  08/08/14   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³                                                            º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ AP                                                        º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßß
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+User function Mt241GRV
+// Inicio Especifico Costos
+Local aArea    := GetArea()
+Local aAreaSB1 := SB1->(GetArea())
+Local aAreaSD3 := SD3->(GetArea())
+Local cDoc     := Paramixb[1]
+Local aCpoUsu  := Paramixb[2]
+Local nCustd   := 0
+
+dbSelectArea("SD3")
+dbSetOrder(2)
+dbSeek(xFilial("SD3")+cDoc)
+While !EOF() .And. SD3->D3_FILIAL+SD3->D3_DOC == xFilial("SD3")+cDoc
+
+	nCustd := Posicione('SB1',1,xFilial('SB1')+SD3->D3_COD,'B1_CUSTD')
+
+		SB1->(DbSeek(xFilial("SB1") + SD3->D3_COD ))
+		
+		_nCostolp	:=  u_TraeCosLp(1,SB1->B1_COD)
+		_dDataLP	:=  u_TraeCosLp(2,SB1->B1_COD)
+		_nMoedaLP	:=  u_TraeCosLp(3,SB1->B1_COD)
+		
+		If _dDataLp > SB1->B1_UCOM  // si la fecha de la lista de precios es mayor a la fecha de ultima compra
+			_nCustop	:= _ncostoLp   // asino como costo el costo de la lista de precios
+			_nMoeda		:= _nMoedaLP
+		Else
+   			_nCustop	:= SB1->B1_CUSTD   // asino como costo el costo de la lista de precios
+   			_nMoeda		:= SB1->B1_MCUSTD
+		EndIf
+		
+		If _nCustop > 0
+			
+			Do Case
+				Case _nMoeda == "1"
+					nCosEst1	:= _nCustop
+					nCosEst2	:= 	_nCustop / RecMoeda( ddatabase , 2 )
+					nCosEst3	:=  _nCustop / RecMoeda( ddatabase , 3 )
+					nCosEst4	:= 	_nCustop / RecMoeda( ddatabase , 4 )
+					nCosEst5	:=  _nCustop / RecMoeda( ddatabase , 5 )
+					
+				Case _nMoeda == "2"
+					nCosEst2	:= _nCustop
+					nCosEst1	:=	nCosEst2 * RecMoeda( ddatabase , 2 )
+					nCosEst3	:= 	nCosEst1 / RecMoeda( ddatabase , 3 )
+					nCosEst4	:=  nCosEst1 / RecMoeda( ddatabase , 4 )
+					nCosEst5	:=  nCosEst1 / RecMoeda( ddatabase , 5 )
+					
+				Case _nMoeda == "3"
+					nCosEst3	:= 	_nCustop
+					nCosEst1	:=	nCosEst3 * RecMoeda( ddatabase , 3 )
+					nCosEst2	:= 	nCosEst1 / RecMoeda( ddatabase , 2 )
+					nCosEst4	:=  nCosEst1 / RecMoeda( ddatabase , 4 )
+					nCosEst5	:=  nCosEst1 / RecMoeda( ddatabase , 5 )
+					
+				Case _nMoeda == "4"
+					nCosEst4	:=  _nCustop
+					nCosEst1	:=	nCosEst4 * RecMoeda( ddatabase , 4 )
+					nCosEst2	:= 	nCosEst1 / RecMoeda( ddatabase , 2 )
+					nCosEst3	:=  nCosEst1 / RecMoeda( ddatabase , 3 )
+					nCosEst5	:=  nCosEst1 / RecMoeda( ddatabase , 5 )
+					
+				Case _nMoeda == "5"
+					nCosEst5	:=  _nCustop
+					nCosEst1	:=	nCosEst5 * RecMoeda( ddatabase , 5 )
+					nCosEst2	:= 	nCosEst1 / RecMoeda( ddatabase , 2 )
+					nCosEst3	:=  nCosEst1 / RecMoeda( ddatabase , 3 )
+					nCosEst4	:=  nCosEst1 / RecMoeda( ddatabase , 4 )
+					
+			EndCase
+
+			nCosEst1	:=	Round(nCosEst1 * SD3->D3_QUANT, TamSx3("D1_CUSTO")[2]  )
+			nCosEst2	:= 	Round(nCosEst2 * SD3->D3_QUANT, TamSx3("D1_CUSTO2")[2] )
+			nCosEst3	:=  Round(nCosEst3 * SD3->D3_QUANT, TamSx3("D1_CUSTO3")[2] )
+			nCosEst4	:=  Round(nCosEst4 * SD3->D3_QUANT, TamSx3("D1_CUSTO4")[2] )
+			nCosEst5	:=  Round(nCosEst5, TamSx3("D1_CUSTO5")[2] )
+			
+			If SD3->(RecLock("SD3",.F.))
+				Replace SD3->D3_CUSRP1   With nCosEst1
+				Replace SD3->D3_CUSRP2  With nCosEst2
+				Replace SD3->D3_CUSRP3  With nCosEst3
+				Replace SD3->D3_CUSRP4  With nCosEst4
+				Replace SD3->D3_CUSRP5  With nCosEst5
+				SD3->(MsUnLock())
+			EndIf
+			
+		EndIf
+	
+	MsUnlock()
+	
+	dbSkip()
+EndDo
+
+RestArea(aAreaSD3)
+RestArea(aAreaSB1)
+RestArea(aArea)
+// FIN Especifico Costos               
+Return 

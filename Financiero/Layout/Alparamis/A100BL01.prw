@@ -1,0 +1,266 @@
+#include "PROTHEUS.ch"
+
+/*ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณA100BL01  บAutor  ณAlejandro Perret    บFecha ณ 14/08/2009  บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Impresion del layout de la transferencia.                  บฑฑ
+ฑฑฬออออออออออัอออออออัออออออออออออออออออออออออออออออหออออออัออออออออออออออนฑฑ
+ฑฑ           ณ Modificacion Nicolas Cirigliano 20/02/14                   บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ FINA100                                                    บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿*/
+
+User Function A100BL01()
+	
+	Local aArea 		:= GetArea()
+	Local cDesc1		:= "Este programa imprime el comprobante de Tranf. Efectivo"
+	Local cDesc2		:= ""
+	Local cDesc3		:= ""
+	Local wnrel			:= "A100BL01"
+	Local cString		:= "SE5"
+	Local pasa          := 0
+	
+	Private tamanho		:= "P"
+	Private limite		:= 80
+	Private titulo		:= "Transferencia entre Cuentas"
+	Private aReturn		:= { OemToAnsi("A Rayas"), 1,OemToAnsi("Administracion"), 2, 2,1,"",1 } //"Zebrado"###"Administracao"
+	Private nomeprog	:= "A100BL01"
+	Private nLastKey	:= 0
+	private entra 		:= .T.
+	Private nLine 		:= 1
+	Private M_PAG		:= 1
+	//---------------------------
+	/*
+	Private cBcoOrig	:= ParamIxb[1]
+	Private cAgenOrig	:= ParamIxb[2]
+	Private cCtaOrig	:= ParamIxb[3]
+	Private cNaturOri	:= ParamIxb[4]
+	
+	Private cBcoDest	:= ParamIxb[5]
+	Private cAgenDest	:= ParamIxb[6]
+	Private cCtaDest	:= ParamIxb[7]
+	Private cNaturDes	:= ParamIxb[8]
+	
+	Private cTipoTran	:= ParamIxb[9]
+	Private nValorTran	:= ParamIxb[10]
+	Private cDocTran	:= ParamIxb[11]
+	Private cBenef100	:= ParamIxb[12]
+	Private cHist100	:= ParamIxb[13]
+	Private cModSpb		:= ParamIxb[14]
+	*/
+	//---------------------------
+	Private cBcoOrig
+	Private cAgenOrig
+	Private cCtaOrig
+	Private cNaturOri
+	
+	Private cBcoDest
+	Private cAgenDest
+	Private cCtaDest
+	Private cNaturDes
+	
+	Private cTipoTran
+	Private nValorTran
+	Private cDocTran
+	Private cBenef100
+	Private cHist100
+	Private cModSpb
+
+	Private cSecNum
+	Private cSecNumV	// Secuencia de Numero Vigente
+	Private cSecNumP	// Secuencia de Numero
+	Private cSecNumS	// Secuencia de Numero
+
+	If Funname()=="FINA100"
+		cBcoOrig	:= ParamIxb[1]
+		cAgenOrig	:= ParamIxb[2]
+		cCtaOrig	:= ParamIxb[3]
+		cNaturOri	:= ParamIxb[4]
+		
+		cBcoDest	:= ParamIxb[5]
+		cAgenDest	:= ParamIxb[6]
+		cCtaDest	:= ParamIxb[7]
+		cNaturDes	:= ParamIxb[8]
+		
+		cTipoTran	:= ParamIxb[9]
+		nValorTran	:= ParamIxb[10]
+		cDocTran	:= ParamIxb[11]
+		cBenef100	:= ParamIxb[12]
+		cHist100	:= ParamIxb[13]
+		cModSpb		:= ParamIxb[14]
+
+	Else
+		ajustasx1("TRF100")
+		if pergunte("TRF100",.t.)
+			//	PARAMETROS: NUMERO A IMPRIMIR? / DE BANCO ORIGEN?
+			//	Buscar el movimiento y reemplazar estos valores
+
+			cAliasSE5:="SE5_TMP"
+			If Select((cAliasSE5))<>0
+				DbSelectArea((cAliasSE5))
+				DbCloseArea()
+			Endif
+
+			cQuery:="SELECT E5_BANCO, E5_AGENCIA, E5_CONTA, E5_RECPAG, E5_BENEF, E5_HISTOR, E5_NATUREZ, E5_VALOR, E5_MOEDA, E5_NUMCHEQ, E5_SECNUM "
+			cQuery+="FROM "+RetSqlName("SE5")+" "+(cAliasSE5)+" "
+			cQuery+="WHERE E5_FILIAL='"+xfilial("SE5")+"' AND D_E_L_E_T_<>'*' "
+			cQuery+= " AND ( ( E5_NUMCHEQ ='"+mv_par01+"'"
+			cQuery+= " AND E5_RECPAG = 'P' AND E5_BANCO = '"+MV_PAR02+"' AND E5_AGENCIA = '"+MV_PAR03+"' AND E5_CONTA = '"+MV_PAR04+"' ) OR "
+			
+			cQuery+= " ( E5_DOCUMEN ='"+mv_par01+"' AND E5_RECPAG = 'R' ) ) "
+			
+			cQuery := ChangeQuery(cQuery)
+			dbUseArea(.T.,"TOPCONN",TCGenQry(,,cQuery),(cAliasSE5),.F.,.T.)
+			cuenta:=0
+			DBSELECTAREA((cAliasSE5))
+			dbgotop()
+			WHILE !(cAliasSE5)->(EOF())
+				IF (cAliasSE5)->E5_RECPAG=='P' .AND. (cAliasSE5)->E5_BANCO == MV_PAR02
+					cBcoOrig	:= (cAliasSE5)->E5_BANCO
+					cAgenOrig	:= (cAliasSE5)->E5_AGENCIA
+					cCtaOrig	:= (cAliasSE5)->E5_CONTA
+					cNaturOri	:= (cAliasSE5)->E5_NATUREZ
+					cTipoTran	:= (cAliasSE5)->E5_MOEDA
+					nValorTran	:= (cAliasSE5)->E5_VALOR
+					cDocTran	:= (cAliasSE5)->E5_NUMCHEQ
+					cBenef100	:= (cAliasSE5)->E5_BENEF
+					cHist100	:= (cAliasSE5)->E5_HISTOR
+					pasa++
+					//			cModSpb		:= ParamIxb[14]
+				ELSEIF (cAliasSE5)->E5_RECPAG=='R' .AND. !((cAliasSE5)->E5_BANCO == MV_PAR02)
+					cBcoDest	:= (cAliasSE5)->E5_BANCO
+					cAgenDest	:= (cAliasSE5)->E5_AGENCIA
+					cCtaDest	:= (cAliasSE5)->E5_CONTA
+					cNaturDes	:= (cAliasSE5)->E5_NATUREZ
+					pasa++
+				ENDIF
+				cuenta++
+				(cAliasSE5)->(DBSKIP())
+			ENDDO     
+			DBSELECTAREA((cAliasSE5))
+			dbclosearea()
+			if cuenta > 0 .and. pasa > 1
+				entra:=.t. 
+			else 
+				entra:=.f.
+				msgalert("No hay datos para mostrar...")
+			endif
+		else
+			entra:=.f.
+		endif
+	EndIf
+	if entra
+		If MsgYesNo("Desea imprimir el comprobante?","Comprobante de Transferencia")
+			wnrel := SetPrint(cString,wnrel,,@titulo,cDesc1,cDesc2,cDesc3,.F.,"",.T.,tamanho,"",.T.)
+			If nLastKey <> 27
+				SetDefault(aReturn,cString)
+				If nLastKey <> 27
+					RptStatus({|| ImpComp()},Titulo)
+					If aReturn[5]==1
+						dbCommitAll()
+						SET PRINTER TO
+						OurSpool(wnrel)
+					Endif
+					MS_FLUSH()
+				Endif
+			Endif
+			RestArea(aArea)
+		EndIf
+	endif
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัอออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณImpComp    บAutor  ณAlejandro Perret    บFecha ณ  14/08/09   บฑฑ
+ฑฑฬออออออออออุอออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Imprime el comprobante.                                     บฑฑ
+ฑฑบ          ณ                                                             บฑฑ
+ฑฑฬออออออออออุอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ FINA100                                                     บฑฑ
+ฑฑศออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function ImpComp()
+Local cAux := ""
+Local nMoedaCx := 0
+Local aSA6 := SA6->(GetArea())
+
+SA6->(DbSetOrder(1))
+SA6->(DbSeek(xFilial("SA6")+cBcoOrig+cAgenOrig+cCtaOrig))
+nMoedaCx:=Max(SA6->A6_MOEDA,1)
+cAux:="MV_SIMB"+Alltrim(Str(nMoedaCx))
+
+Cabec(Titulo,"","",NomeProg,Tamanho)
+
+nLine := nLine +7
+
+@nLine,017 Psay "De Banco  : " + cBcoOrig  + " - "+ Alltrim(SA6->A6_NREDUZ)
+nLine++
+@nLine,017 Psay "Agencia   : " + cAgenOrig
+nLine++
+@nLine,017 Psay "Cuenta    : " + cCtaOrig
+nLine++
+@nLine,017 Psay "Naturaleza: " + Posicione("SED",1,xfilial("SED")+ cNaturOri,"ED_DESCRIC")
+nLine := nLine + 2
+SA6->(DbSeek(xFilial("SA6")+cBcoDest+cAgenDest+cCtaDest))
+@nLine,017 Psay "A Banco   : " + cBcoDest+ " - " + Alltrim(SA6->A6_NREDUZ)
+nLine++
+@nLine,017 Psay "Agencia   : " + cAgenDest
+nLine++
+@nLine,017 Psay "Cuenta    : " + cCtaDest
+nLine++
+@nLine,017 Psay "Naturaleza: " + Posicione("SED",1,xfilial("SED")+ cNaturDes,"ED_DESCRIC")
+nLine := nLine + 3
+@nLine,017 Psay "Tipo      : " + cTipoTran
+nLine++
+@nLine,017 Psay "Valor     : " + Alltrim(SuperGetMV(cAux,,"")) + TransForm(nValorTran,"@E 9,999,999.99" )
+nLine := nLine+4
+@nLine,017 Psay "Documento : " + cDocTran
+nLine++
+@nLine,017 Psay "Benefic.  : " + cBenef100
+nLine++
+@nLine,017 Psay "Historial : " + cHist100
+nLine++
+
+nLine := nLine + 18
+@nLine,011 Psay "______________________________"
+@nLine,045 Psay "______________________________"
+nLine++
+@nLine,011 Psay "Firma de Responsable"
+@nLine,045 Psay "Firma de Responsable"
+
+SA6->(RestArea(aSA6))
+Return()
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuno    ณ AjustaSX1บ Autor ณ Gilson da Silva   บ Data ณ  29.01.04    บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescrio ณ Criacao de Perguntas no SX1                                บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ MATRAR1                                                    บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+Static Function AjustaSX1(cPerg)
+
+PutSx1(cPerg,"01","Numero de Transferencia ?","Numero de Transferencia ?","Numero de Transferencia ?","mv_ch1","C",15,0,0,"G","","","","","mv_par01","","","","",;
+"","","","","","","","","","","","")
+
+PutSx1(cPerg,"02","Banco Origen ?","Banco Origen ?","Banco Origen ?","mv_ch2","C",3,0,0,"G","","SA6","","","mv_par02","","","","",;
+"","","","","","","","","","","","")
+
+PutSx1(cPerg,"03","Agencia Origen ?","Agencia Origen ?","Agencia Origen ?","mv_ch3","C",5,0,0,"G","","","","","mv_par03","","","","",;
+"","","","","","","","","","","","")
+
+PutSx1(cPerg,"04","Cuenta Origen ?","Cuenta Origen ?","Cuenta Origen ?","mv_ch4","C",10,0,0,"G","","","","","mv_par04","","","","",;
+"","","","","","","","","","","","")
+
+RETURN

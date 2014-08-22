@@ -1,0 +1,82 @@
+#include "rwmake.ch"       // incluido por el asistente de conversión del AP5 IDE en 26/04/00
+
+User Function M467ser()     // incluido por el asistente de conversión del AP5 IDE en 26/04/00
+
+Local __cTipo    := ''//
+//Local cCorrUni := ALLTRIM(UPPER(GETNewPAR("MV_CORRUNI","''")))
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Declaración de variables utilizadas en el programa a través de la función    ³
+//³ SetPrvt, va a crear sólo las variables definidas por el usuario,    ³
+//³ identificando las variables públicas del sistema utilizadas en el código ³
+//³ Incluido por el asistente de conversión del AP5 IDE                    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+SetPrvt("_XCSERIE,")
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ M467Ser  ³ Autor ³ Octavio Moreira         ³ Data ³ 03/05/99 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Obter a Serie da NC, ND y Facturas basandose no Tipo Cliente ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+_xcSerie := Space(3)
+
+If Alltrim(Funname()) == "MATA465N" .Or. Alltrim(Funname()) == "MATA466N"              
+	Return U_M465SER()
+EndIf
+	
+IF cModulo == 'FAT'.Or. cModulo == "LOJ"
+	If Alltrim(Funname()) == "MATA467N" // Facturas de venta
+		__cTipo := Alltrim(Posicione( 'SA1', 1, xFilial('SA1') + M->F2_CLIENTE + M->F2_LOJA, 'A1_TIPO' ))	
+		_xcSerie := U_ShowSeries(__cTipo,cEspecie)
+		cDoc := Tabela( '01', _xcSerie)
+   		M->F2_SERIE := _xcSerie
+   		LocXVal( 'F2_SERIE' )
+   		M->F2_DOC := cDoc
+   		LocXVal( 'F2_DOC' )
+   		MAFISREF("NF_SERIENF","MT100",M->F2_SERIE)
+				                
+
+	ElseIf Alltrim(Funname()) == "MATA462N"
+		_xcSerie := u_showseries(__cTipo,"RFN")
+	ElseIf Alltrim(Funname()) == "MATA462R"
+		_xcSerie := GetNewPar("LB_OFFRS","RS ")	
+	ElseIf Alltrim(Funname()) == "MATA102DN"		
+		_xcSerie := "RD "	
+	EndIf
+EndIf
+
+IF cModulo == 'COM' .OR. cModulo == 'EST'		
+	If Alltrim(Funname()) == "MATA101N"	
+		__cTipo:=Posicione( 'SA2', 1, xFilial('SA2') + M->F1_FORNECE, 'A2_TIPO' )
+		If __cTipo $ 'E'
+			_xcSerie := "E  "
+		ElseIf __cTipo $ "I"    
+			_xcSerie := "A  "
+		ElseIf __cTipo $ "N;M;X;"    
+			_xcSerie := "C  "
+		ElseIf __cTipo $ "S"    
+			_xcSerie := "X  "
+		Endif
+	ElseIf Alltrim(Funname()) == "MATA102DN"
+		__cTipo:=Posicione( 'SA2', 1, xFilial('SA2') + M->F2_CLIENTE, 'A2_TIPO' )
+		_xcSerie := u_showseries(__cTipo,"RFN")
+	EndIf	    
+EndIf
+               
+If Alltrim(FunName()) == "MATA462TN"
+	_xcSerie := u_showseries(__cTipo,"RFN")
+EndIf   
+
+If Alltrim(FunName()) $ "MATA102N|MATA462DN"   
+	_xcSerie := "R  "
+EndIf
+
+Return (_xcSerie )

@@ -1,0 +1,179 @@
+#INCLUDE "PROTHEUS.CH"
+#INCLUDE "REPORT.CH"
+#Include "TopConn.CH"
+#Include "TOTVS.CH"
+
+/*ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±                                                         
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Programa  ³ACO001  ³ Autor ³ Fernando Cardeza        ³ Data ³02/12/13  ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Informe de saldos de cantidades producto/acopio            ³±±
+±±³          ³ Son los productos en los pedidos de venta que no fueron    ³±±   
+±±³          ³ entregados al cliente todavia						      ³±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß*/
+
+User Function ACO002()
+
+Local oReport
+Local cQuery
+Local oSection
+Private cPerg := "ACO002    "
+Private _cTitFun:= ""
+Private _cChave := "" 
+Private _nTotal := 0
+
+AjustaSX1(cPerg)     
+		If TRepInUse()	
+			Pergunte(cPerg,.F.)	
+			oReport := ReportDef()	
+			oReport:PrintDialog()	
+		EndIf
+Return                        
+
+
+Static Function ReportDef()
+Local oReport
+Local oSection
+Local oBreak
+Local aOrdem      := {}
+
+oReport := TReport():New(cPerg,"Informe de saldos de cantidades producto/acopio ",cPerg,{|oReport| PrintReport(oReport)},"Informe de saldos de cantidades producto/acopio ")
+oReport:SetLandscape()     //
+oReport:SetTotalInLine(.F.)//
+oSection := TRSection():New(oReport,"Informe de saldos de cantidades producto/acopio",{},{"Informe de saldos de cantidades producto/acopio"})
+TRCell():New(oSection,"ACOPIO") 
+TRCell():New(oSection,"TIPO") 
+TRCell():New(oSection,"DESCRIPCION","","DESCRIPCION","@!",100) 
+TRCell():New(oSection,"CLIENTE") 
+TRCell():New(oSection,"TIENDA")                                                                     
+TRCell():New(oSection,"CANT        ","","CANTIDAD        ",GetSx3Cache("D2_TOTAL","X3_PICTURE"),16) 
+//TRCell():New(oSection,"SALDO        ","","SALDO        ",GetSx3Cache("D2_TOTAL","X3_PICTURE"),16) 
+//TRCell():New(oSection,"TOTAL        ","","TOTAL        ",GetSx3Cache("D2_TOTAL","X3_PICTURE"),16) 
+
+Return oReport
+
+Static Function PrintReport(oReport)
+//Local cAlias 	:= GetNextAlias()
+Local oSection  := oReport:Section(1)
+Local oBreak
+Local _cTipo	:=''
+Local cPart
+Local cCase
+Local cFiliais          := ""
+Local nCont
+Local cCodigos          := ""
+Local aVerbas           := {}
+
+Pergunte(cPerg,.F.)
+
+cQuery := " SELECT Z01_ACOPIO ACOPIO,Z01_TIPO TIPO,'1-'+Z01_DESC DESCRIPCION,Z01_CLIENT CLIENTE,Z01_LOJA TIENDA,0 CANT"//Z01_XVFAC SALDO, 0 TOTAL "
+cQuery += " FROM " + RETSQLNAME("Z01")
+cQuery += " WHERE "
+cQuery += " Z01_CLIENT BETWEEN '" +MV_PAR03+ "' AND '"+ MV_PAR04 +"' "
+cQuery += " AND Z01_ACOPIO BETWEEN '" +MV_PAR01+ "' AND '" +MV_PAR02 +"' "
+cQuery += " AND Z01_ACOPIO<>'' AND D_E_L_E_T_='' UNION ALL " 
+/*
+cQuery += " SELECT C5_XNROACO ACOPIO,C5_XTPACO TIPO,'PEDIDO:'+C5_NUM+' /1- TOTAL DE ACOPIO' DESCRIPCION,C5_CLIENTE CLIENTE,C5_LOJACLI TIENDA,C5_XTOTACO SALDO, 0 TOTAL "
+cQuery += " FROM " + RETSQLNAME("SC5")
+cQuery += " WHERE "
+cQuery += " C5_CLIENTE BETWEEN '" +MV_PAR03+ "' AND '"+ MV_PAR04 +"' "
+cQuery += " AND C5_XNROACO BETWEEN '" +MV_PAR01+ "' AND '" +MV_PAR02 +"' "
+cQuery += " AND C5_XNROACO<>'' AND D_E_L_E_T_='' UNION ALL "
+*/
+cQuery += " SELECT C6_XNROACO ACOPIO,'' TIPO,'PEDIDO:'+C6_NUM+' /2- ITEM:'+C6_ITEM+'/ COD:('+RTRIM(C6_PRODUTO)+') /DESC: '+RTRIM(C6_DESCRI) DESCRIPCION,C6_CLI CLIENTE,C6_LOJA TIENDA,(C6_QTDVEN- C6_QTDENT) CANT"//(C6_VALOR*(-1)) SALDO, 0 TOTAL"
+cQuery += " FROM " + RETSQLNAME("SC6")
+cQuery += " WHERE "
+cQuery += " C6_CLI BETWEEN '" +MV_PAR03+ "' AND '"+ MV_PAR04 +"' "
+cQuery += " AND C6_XNROACO BETWEEN '" +MV_PAR01+ "' AND '" +MV_PAR02 +"' "
+cQuery += " AND C6_XNROACO<>'' AND D_E_L_E_T_='' AND (C6_QTDVEN- C6_QTDENT- C6_QTDEMP- C6_QTDRESE)=0 AND (C6_QTDVEN-C6_QTDENT)>0" //AND C6_GERANF='N'
+cQuery += " ORDER BY CLIENTE,ACOPIO,DESCRIPCION"
+
+TcQuery cQuery New Alias cAlias
+
+oSection:Init()
+DO While !oReport:Cancel() .And. !cAlias->(EOF())
+    IF !EMPTY(_cChave) 
+     	IF _cChave <> cAlias->ACOPIO
+  //   		_nTotal := cAlias->SALDO 
+     		_cTipo  := cAlias->TIPO     		  
+     		oReport:ThinLine()
+     		//     cAlias->(dbSkip())
+     		//     LOOP
+     	ENDIF
+    ELSE 
+ //   	_nTotal := cAlias->SALDO
+    ENDIF 
+     oReport:IncMeter()
+     If oReport:Cancel()
+          Exit
+     EndIf
+     //oSection:Init()
+     oSection:Cell("ACOPIO"     ):SetBlock( { || cAlias->ACOPIO	 	})
+     oSection:Cell("TIPO"       ):SetBlock( { || _cTipo		 		}) 
+     oSection:Cell("DESCRIPCION"):SetBlock( { || cAlias->DESCRIPCION})
+     oSection:Cell("CLIENTE"    ):SetBlock( { || cAlias->CLIENTE    })
+     oSection:Cell("TIENDA"     ):SetBlock( { || cAlias->TIENDA  	})    
+     oSection:Cell("CANT"       ):SetBlock( { || cAlias->CANT     	})
+//   oSection:Cell("SALDO"      ):SetBlock( { || cAlias->SALDO     	})
+//   oSection:Cell("TOTAL" 		):SetBlock( { || _nTotal 			}) 
+     
+	IF _cChave <> cAlias->ACOPIO
+     	_cChave := cAlias->ACOPIO
+ 	Else
+ 		_cChave := cAlias->ACOPIO
+  //   	_nTotal := _nTotal + cAlias->SALDO
+	EndIF    
+
+     oSection:PrintLine()             
+     cAlias->(dbSkip())
+ENDDO
+
+//oSection:Cell("TOTAL" ):SetBlock( { || _nTotal }) 
+//oSection:PrintLine()
+cAlias->(DbCloseArea())
+
+oSection:Finish()
+//	
+//oReport:Section(1):Print()
+//#ENDIF
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³AjustaSx1  ºAutor ³Fernando Cardeza    º Data ³  02/12/13   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³Parametros del Reporte							          º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+Static Function AjustaSX1(cPerg)
+	Local aArea := GetArea()
+	Local aRegs := {}, i, j
+
+	DbSelectArea("SX1")
+	DbSetOrder(1)
+
+	aAdd(aRegs,{cPerg,"01","De Acopio	","De Acopio	","De Acopio	","mv_ch1","C",06,0,0,"G","","MV_PAR01","","","","","","","","","","","","","","","","","","","","","","","","","","","" } )
+	aAdd(aRegs,{cPerg,"02","A Acopio 	","A Acopio 	","A Acopio 	","mv_ch2","C",06,0,0,"G","","MV_PAR02","","","","","","","","","","","","","","","","","","","","","","","","","","","" } )
+	aAdd(aRegs,{cPerg,"03","De Cliente	","De Cliente	","De Cliente	","mv_ch3","C",06,0,0,"G","","MV_PAR03","","","","","","","","","","","","","","","","","","","","","","","","","","","" } )
+	aAdd(aRegs,{cPerg,"04","A Cliente	","A Cliente	","A Cliente	","mv_ch4","C",06,0,0,"G","","MV_PAR04","","","","","","","","","","","","","","","","","","","","","","","","","","","" } )
+	
+	For i:=1 to Len(aRegs)
+	   If !dbSeek(cPerg+aRegs[i,2])
+		  RecLock("SX1",.T.)
+		  For j:=1 to FCount()
+			 If j <= Len(aRegs[i])
+				FieldPut(j,aRegs[i,j])
+			 Endif
+		  Next
+		  MsUnlock()
+		Endif
+	Next
+	RestArea(aArea)
+Return

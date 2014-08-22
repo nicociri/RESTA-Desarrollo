@@ -1,0 +1,1542 @@
+#INCLUDE "PROTHEUS.CH"
+#INCLUDE "SDIARIO.CH"
+#DEFINE CANTMAX 70       
+#DEFINE Colum 055      
+#DEFINE sum 014    
+#define F_NAME        1
+#define F_SIZE        2
+#define F_DATE        3
+#define F_TIME        4
+#define F_ATTR        5
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑฺฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤฤยฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤยฤฤฤฤฤฤฤฤฤฤฟฑฑ
+ฑฑณPrograma  ณSDIARIO   ณ Autor ณAndres Demarziani      ณ Data ณ 07.09.09 ณฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤดฑฑ
+ฑฑณDescricao ณSubDiario de IVA Compras / Ventas.                          ณฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ
+ฑฑณRetorno   ณNenhum                                                      ณฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ
+ฑฑณParametrosณNenhum                                                      ณฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ
+ฑฑณUso       ณPC ARTS                                                     ณฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ
+ฑฑณ   DATA   ณ Programador   ณManutencao efetuada                         ณฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ
+ฑฑณ          ณ               ณ                                            ณฑฑ                                                                                  
+ฑฑภฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤูฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+
+User Function SDIARIO()
+
+Local nQ
+Local cPerg       	:= "SDIARIO"
+Local cString     	:= "SF3"
+
+Private CbTxt		:=""
+Private CbCont		:=""
+
+Private aTipos   	:= {}
+Private lTipos      := SX5->(DBSEEK(xFilial("SX5")+"SF"))
+Private aTotCFis    := {}
+
+Private aPtoVta		:= {}
+Private lPtoVta     := .T.
+Private aTotPto    	:= {}
+Private cPtoVta		:= ""
+
+Private aProvincia  := {}
+Private lProvincia  := SX5->(DBSEEK(xFilial("SX5")+"12"))
+Private aTotProv  	:= {}
+
+Private tamanho   	:= "P"
+Private limite    	:= 220
+Private titulo    	:= PADC(OemToAnsi(STR0001),74) //"Emisi๓n del Subdiario de IVA"
+Private cDesc1    	:= PADC(OemToAnsi(STR0002),74) //"Se solicitaran la fecha inicial y la fecha final para la emisi๓n"
+Private cDesc2    	:= PADC(OemToAnsi(STR0003),74) //"de los libros de IVA Compras"
+Private cDesc3    	:= ""
+Private aReturn   	:= { OemToAnsi(STR0004), 1,OemToAnsi(STR0005), 1, 2, 1,"",1 } //"Especial"###"Administracion"
+Private lContinua 	:= .T.
+Private wnrel     	:= "SDIARIO"
+Private cPictVals 	:= "@E 999,999,999.99"
+Private nLastKey	:=	0
+//Private aNumCol		:= {067,081,095,109,123,137,151,165,179,193,206}
+Private aNumCol     := {Colum,Colum+(sum*1),Colum+(sum*2),Colum+(sum*3),Colum+(sum*4),Colum+(sum*5),Colum+(sum*6),Colum+(sum*7),Colum+(sum*8),Colum+(sum*9),Colum+(sum*10)} // 192
+//Private aNumCol		:= {067,081,095,109,123,137,151,165,179,193,206}
+
+
+
+Private dDtIni, dDtFim
+Private nImpGravados,nNoGravados,nIvaNoInscri
+Private nPagina,cRazaoSoc,cCGC,nLin
+Private nSigno,nTipo,aMeses
+PRIVATE cEmpresa,cInscr,cCuit,cTitulo,_nMes,nCnt1
+PRIVATE nd,nLinRoda1,nLinRoda2,nLinRoda3,nLinRoda4,nLinRoda5
+PRIVATE nLinRoda1b,nLinRoda2b,nLinRoda3b,nLinIni,aDriver,nOpc, CFILTERUSER
+Private cIndexSf3 , dDataEnt
+
+
+If lTipos   // Verifica se existe a Tabela SF(Tabela de Agentes Fiscais) no SX5 e monta o array com todas as chaves desse grupo.
+	SX5->(DBSEEK(xFilial("SX5")+"SF"))
+	While !SX5->(EOF()).And.SX5->X5_TABELA=="SF"
+		Aadd(aTipos,{SX5->X5_CHAVE,Alltrim(x5DESCri())})
+		SX5->(DbSkip())
+	Enddo
+//	Aadd(aTipos,{"  ",OemToAnsi(STR0006)}) //"Tipo no Reg."
+	Aadd(aTipos,{"  ","SUJETOS DEL EXTERIOR" }) //"Tipo no Reg."
+	For nQ	:=	1 To len(aTipos)
+		Aadd(aTotCFis,{0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00})
+	Next
+Endif
+
+If lProvincia  // Verifica se existe a Tabela 12(Tabela de Zonas Fiscais) no SX5 e monta o array com todas as chaves desse grupo.
+	SX5->(DBSEEK(xFilial("SX5")+"12"))
+	While !SX5->(EOF()).And.SX5->X5_TABELA=="12"
+		Aadd(aProvincia,{SX5->X5_CHAVE,Alltrim(x5DESCri())})
+		SX5->(DbSkip())
+	Enddo
+	For nQ	:=	1 To len(aProvincia)
+		Aadd(aTotProv,{0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00})
+	Next
+Endif
+
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณVerifica as perguntas selecionadas   ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณVariaveis utilizadas para parametros    ณ
+//ณmv_par01             // Fecha desde     ณ
+//ณmv_par02             // Fecha hasta     ณ
+//ณmv_par03             // Incluir         ณ
+
+//ณmv_par04             // Estilo          ณ
+//ณmv_par05             // Sucursales      ณ
+//ณmv_par06             // Resumen         ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู   
+AjustaSX1(cPerg)
+Pergunte(cPerg,.F.)
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณ Envia controle para a funcao SETPRINTณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+wnrel:=SetPrint(cString,wnrel,cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,"",.T.,Tamanho)
+
+dDtIni := Dtos(mv_par01)
+dDtFim := Dtos(mv_par02)
+
+If nLastKey == 27
+	Return
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey == 27
+	Return
+Endif
+
+cFilterUser:=aReturn[7]
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณVerifica Posicao do Formulario na Impressoraณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+VerImp()
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณInicio do Processamento do Relatorio. ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+#IFDEF WINDOWS
+	RptStatus({|| RptDetail()})
+#ENDIF
+
+dbSelectArea("SF3")
+dbClearFil()
+RetIndex( "SF3" )
+#IFNDEF TOP
+	FErase(cIndexSf3+OrdBagExt())
+#ENDIF
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณRptDetail บAutor  ณGilson da Silva     บ Data ณ  06/01/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Impressao da linha detalhe do relatorio			          บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Livros Fiscais                                             บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function RptDetail()
+
+Local aCpos		:= {}
+Local aStru		:= {}
+Local cPictFact	:= ""
+Local cDbfTmp	:= ""
+Local cNtxTmp	:= ""
+Local cNotaAnt  := ""
+Local cFiltro   := ""
+Local cEspecie	:= ""
+Local cSerie	:= ""
+
+Local oExcel
+Local cArq
+Local nArq
+Local cPath
+
+Local cTipoCli	:= ""
+Local cProvEnt	:= ""
+Local cClave	:= ""
+Local cCod 		:= ""
+Local cLoja		:= ""
+Local cCli 		:= ""
+Local cRem 		:= ""
+Local cLojaPC	:= ""
+Local cFecExcel	:= ""
+
+
+Local nVal105	:= 10.5
+Local nIndex	:= 0
+Local nQ		:= 0
+Local nCont 	:= 1
+Local nValMerc 	:= 0
+Local nValBrut 	:= 0   
+Local nQtLinCab	:= 0       
+Local nQtLinRes	:= 0       
+Local nPosEsp	:= 0
+Local nI		:= 0
+
+Local aTipDoc	:= {	{"NF/A"	,"FAC"},;
+						{"NF/B"	,"FAC"},;
+						{"NF/C"	,"FAC"},;
+						{"NF/M"	,"FAC"},;
+						{"NF/E"	,"FAC"},;						
+						{"DES/"	,"DES"},;
+						{"NF/"	,"FAC"}}
+
+// Variable para identificar los despachos
+Private lDespacho	:= .F.
+
+// VARIAVEIS COM OS SUB TOTAIS DOS CAMPOS DE IMPOSTOS, SEPARADOS POR TIPO DE DOCUMENTO
+// nF=FATURA  nD=NOTA DE DEBITO   nC=NOTA DE CREDITO
+Private nFVALMERC :=0, nDVALMERC :=0, nCVALMERC:=0
+Private nFVAR01 :=0, nDVAR01 :=0, nCVAR01:=0
+Private nFVAR02 :=0, nDVAR02 :=0, nCVAR02:=0
+Private nFVAR03 :=0, nDVAR03 :=0, nCVAR03:=0
+Private nFVAR04 :=0, nDVAR04 :=0, nCVAR04:=0
+Private nFVAR05 :=0, nDVAR05 :=0, nCVAR05:=0
+Private nFVAR06 :=0, nDVAR06 :=0, nCVAR06:=0
+Private nFVAR07 :=0, nDVAR07 :=0, nCVAR07:=0
+Private nFVAR08 :=0, nDVAR08 :=0, nCVAR08:=0
+Private nFVAR09 :=0, nDVAR09 :=0, nCVAR09:=0
+Private nFImpTotal:=0, nDImpTotal:=0, nCImpTotal:=0
+
+// VARIAVEIS COM OS TOTAIS DOS CAMPOS DE IMPOSTOS, SEPARADOS POR TIPO DE DOCUMENTO
+// nTF=FATURA  nTD=NOTA DE DEBITO   nTC=NOTA DE CREDITO
+Private nTFVALMERC :=0, nTDVALMERC :=0, nTCVALMERC:=0
+Private nTFVAR01 :=0, nTDVAR01 :=0, nTCVAR01:=0
+Private nTFVAR02 :=0, nTDVAR02 :=0, nTCVAR02:=0
+Private nTFVAR03 :=0, nTDVAR03 :=0, nTCVAR03:=0
+Private nTFVAR04 :=0, nTDVAR04 :=0, nTCVAR04:=0
+Private nTFVAR05 :=0, nTDVAR05 :=0, nTCVAR05:=0
+Private nTFVAR06 :=0, nTDVAR06 :=0, nTCVAR06:=0
+Private nTFVAR07 :=0, nTDVAR07 :=0, nTCVAR07:=0
+Private nTFVAR08 :=0, nTDVAR08 :=0, nTCVAR08:=0
+Private nTFVAR09 :=0, nTDVAR09 :=0, nTCVAR09:=0
+Private nTFImpTotal:=0, nTDImpTotal:=0, nTCImpTotal:=0
+
+Private	cAliasSF3	:= ""
+Private	lImpTDia	:= .F.		
+Private dEntAnt	
+
+Private aHeadLF		:= {}
+Private aColsLF		:= {}
+Private aColsLin	:= {}
+
+// INDICA SI SE EMITE RESUMEN POR PUNTO DE VENTA
+lPtoVta := mv_par07 == 2 // SOLO PARA IVA VENTAS		
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณPrepara o SF3 para extracao dos dados  ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+dbSelectArea("SF3")
+
+cAliasSF3:="SF3TMP"
+If Select((cAliasSF3))<>0
+	DbSelectArea((cAliasSF3))
+	DbCloseArea()
+Endif
+
+cQuery:="SELECT	F3_ENTRADA, F3_ESPECIE, F3_SERIE, F3_EMISSAO, F3_NFISCAL, 0 AS RAZSOC, F3_LOJA, 0 AS CUIT, F3_ESTADO, F3_TIPO, 0 AS NETOGRA, "
+cQuery+=" 		F3_CLIEFOR, F3_FILIAL, F3_DTCANC, "
+cQuery+="		SUM(F3_VALIMP1) IVA21     , " // IVA 21
+cQuery+="		SUM(F3_VALIMP2) IVA105    , " // IVA 10.5
+cQuery+="		SUM(F3_VALIMP3) IVA27     , " // IVA 27
+cQuery+="		SUM(F3_EXENTAS) EXENTAS   , " // EXENTAS
+cQuery+="		SUM(F3_VALIMP4) PERCIVA   , " // PERC. IVA      
+cQuery+="		SUM(F3_VALIMP5) PIIBB_CF, " //PERC. IIBB CF
+cQuery+="		SUM(F3_VALIMP6)+SUM(F3_VALIMP7)+SUM(F3_VALIMP8)+SUM(F3_VALIMP9)+SUM(F3_VALIMPA)+"
+cQuery+="		SUM(F3_VALIMPB)+SUM(F3_VALIMPC)+SUM(F3_VALIMPD)+SUM(F3_VALIMPE)+SUM(F3_VALIMPF)+"
+cQuery+="		SUM(F3_VALIMPG)+SUM(F3_VALIMPH)+SUM(F3_VALIMPI)+SUM(F3_VALIMPJ)+SUM(F3_VALIMPK)+"
+cQuery+="		SUM(F3_VALIMPL)+SUM(F3_VALIMPM)+SUM(F3_VALIMPN)+SUM(F3_VALIMPO)+SUM(F3_VALIMPP)+"
+cQuery+="		SUM(F3_VALIMPQ)+SUM(F3_VALIMPR)+SUM(F3_VALIMPS) PIIBB_BA  , " // PERC. IIBB
+cQuery+="		SUM(F3_VALMERC) F3_VALMERC	, " // VALMERC
+cQuery+="		0			    PERCOTROS 	, " // PERC. OTROS (COLUMNA LIBRE)
+cQuery+="		0 				TIPO		, " // TIPO DE CLIENTE
+cQuery+="		SUM(F3_EXENTAS) EXENTAS   	, " // EXENTAS
+cQuery+="		SUM(F3_VALMERC) F3_VALMERC	, " // VALMERC
+cQuery+="		SUM(F3_VALCONT) F3_VALCONT    " // TOTAL
+
+cQuery+="FROM "+RetSqlName("SF3")+" "+(cAliasSF3)+" "
+cQuery+="WHERE D_E_L_E_T_ <> '*' "
+cQuery+="	AND F3_ENTRADA >= '"+dDtIni+"' "
+cQuery+="	AND F3_ENTRADA <= '"+dDtFim+"' "
+cQuery+="   AND F3_OBSERV = ''  "
+
+If !Empty(mv_par05)
+	cQuery+= "	AND F3_FILIAL = '"+mv_par05+"' "
+EndIf
+If mv_par03 == 1
+	cQuery+= "	AND F3_DTCANC = ' ' "
+EndIf
+If mv_par03 == 2
+	cQuery+= "	AND F3_DTCANC <> ' ' " 
+EndIf
+If mv_par03 == 3
+	cQuery+= ""
+EndIf
+If mv_par07 == 1
+	cQuery += "	AND F3_TIPOMOV = 'C'  AND  F3_ESPECIE IN('NF','NDP','NCP') " // Movimientos de COMPRAS
+Else
+	cQuery += "	AND F3_TIPOMOV = 'V'  AND  F3_ESPECIE IN('NF','NDC','NCC','CF','NDE') AND F3_NFISCAL<>''  " // Movimientos de VENTAS
+EndIf
+
+cQuery += "GROUP BY 	F3_ENTRADA,F3_EMISSAO, F3_NFISCAL, F3_SERIE, F3_CLIEFOR, F3_LOJA, "
+cQuery += "				F3_ESTADO, F3_ESPECIE, F3_FILIAL, F3_DTCANC, F3_TIPO "
+
+If mv_par04 == 1
+	cQuery += "ORDER BY 	F3_ENTRADA,F3_SERIE,F3_NFISCAL"
+Else
+	cQuery += "ORDER BY 	F3_EMISSAO,F3_SERIE,F3_NFISCAL" // ORDENA POR EMISION YA QUE NO SALE EL DETALLE POR FECHA
+EndIf
+
+cQuery := ChangeQuery(cQuery)
+dbUseArea(.T.,"TOPCONN",TCGenQry(,,cQuery),"TRBTOP",.F.,.T.)
+
+aStru := dbStruct()
+
+For nX := 1 To Len(aStru)
+	If aStru[nX][02] == "N" 
+		aStru[nX][03] := 17
+	EndIf
+Next
+
+cDbfTmp := CriaTrab( aStru, .T.) + GetDBExtension()
+cNtxTmp := CriaTrab( , .F. ) + OrdBagExt()
+
+dbUseArea(.T.,__cRDDNTTS,cDbfTmp,cAliasSF3,.F.,.F.)
+SqlToTrb(cQuery, aStru, cAliasSF3 )
+
+TRBTOP->(dbCloseArea())
+
+DbSelectArea(cAliasSF3)
+DbGoTop()
+
+For nZ := 1 To Len(aStru)
+	IF aStru[nZ][1] != "F3_CLIEFOR" .AND. aStru[nZ][1] != "F3_FILIAL" .AND. ;
+	aStru[nZ][1] != "F3_DTCANC" .AND. aStru[nZ][1] != "F3_VALMERC"
+		AADD(aHeadLF,{aStru[nZ][1], aStru[nZ][1],.T., aStru[nZ][3],aStru[nZ][4],,,aStru[nZ][2],,} )
+	EndIF
+Next
+
+nLin    	:= 60
+nPagina 	:= 0           
+nQtLinRes 	:= 9 // Qtde Linhas usadas qdo Imprime o resumo. 
+
+SetRegua(LastRec())
+
+dEntAnt:= ""
+             	
+While !Eof()
+	IncRegua()
+	IF lAbortPrint
+		@ 00,01 PSAY OemToAnsi(STR0008) //"** CANCELADO PELO OPERADOR **"
+		lContinua := .F.
+		Exit
+	Endif                      
+
+	If (cAliasSF3)->F3_ENTRADA<>dEntAnt
+		nQtLinCab := nQtLinRes + 4  // Qtde Linhas usadas qdo Imprimir o cabe็alho. 
+	EndIf
+
+	IF MV_PAR07 == 1
+		SF3->( dbSetOrder(4) )		// 4 - F3_CLIEFOR + F3_LOJA + F3_NFISCAL + F3_SERIE
+		SF3->( dbSeek( xFilial("SF3")+(cAliasSF3)->F3_CLIEFOR+(cAliasSF3)->F3_LOJA+ (cAliasSF3)->F3_NFISCAL+(cAliasSF3)->F3_SERIE) )
+
+		IF SF3->F3_ALQIMP1 == nVal105 .AND. SF3->F3_VALIMP1 > 0
+			(cAliasSF3)->IVA105 := SF3->F3_VALIMP1
+			(cAliasSF3)->IVA21  := 0
+		EndIF
+	EndIF
+
+	If nLin + nQtLinCab > CANTMAX
+		If nPagina >= 1
+			If (cAliasSF3)->F3_ENTRADA <> dEntAnt
+				RaR1TotDia()   	// Imprime o sub total por dia
+				dEntAnt := (cAliasSF3)->F3_ENTRADA
+			EndIf
+			RaR1TotPg(,,.T.)  	// Imprime o Sub total Impresso
+			RAR1Cab()   		// Imprime o Cabecalho do relatorio
+			RaR1TotPg()  		// Imprime o Sub Total Impresso
+
+			If mv_par04 == 1
+				@ nLin, 001 PSAY CTOD((cAliasSF3)->(SUBSTR(F3_ENTRADA,7,2)+"/"+SUBSTR(F3_ENTRADA,5,2)+"/"+SUBSTR(F3_ENTRADA,3,2)))
+				nLin := nLin+1							
+			EndIf
+		Else
+			RAR1Cab()   		// Imprime o Cabecalho do relatorio
+			dEntAnt	:= (cAliasSF3)->F3_ENTRADA
+			If mv_par04 == 1
+				@ nLin, 001 PSAY CTOD((cAliasSF3)->(SUBSTR(F3_ENTRADA,7,2)+"/"+SUBSTR(F3_ENTRADA,5,2)+"/"+SUBSTR(F3_ENTRADA,3,2)))
+				nLin := nLin+1			
+			EndIf
+		EndIf
+	EndIf
+	
+	//+--------------------------------------------------------------+
+	//ฆ Considera filtro do usuario                                  ฆ
+	//+--------------------------------------------------------------+
+	If !Empty(cFilterUser).and.!(&cFilterUser)
+		(cAliasSF3)->(dbSkip())
+		Loop
+	Endif
+	
+	If mv_par07 == 1	//Compras
+		cTipoCli := ""
+		cLojaPC	:= ""
+		SA2->( dbSetOrder(1) )
+		SA2->( dbSeek( xFilial("SA2")+(cAliasSF3)->F3_CLIEFOR+(cAliasSF3)->F3_LOJA ) )
+		cRazaoSoc	:= SA2->A2_NOME
+		cCgc	  	:= SA2->A2_CGC
+		cTipoCli	:= SA2->A2_TIPO
+		cProvEnt	:= SA2->A2_EST
+		cLojaPC		:= SA2->A2_LOJA
+	Else	// Ventas
+		cTipoCli := ""
+		cLojaPC	:= ""
+		SA1->( dbSetOrder(1) )
+		SA1->( dbSeek( xFilial("SA1")+(cAliasSF3)->F3_CLIEFOR+(cAliasSF3)->F3_LOJA ) )
+		cRazaoSoc	:= SA1->A1_NOME
+		cCgc	  	:= SA1->A1_CGC
+		cTipoCli	:= SA1->A1_TIPO
+		cLojaPC		:= SA1->A1_LOJA
+	EndIf
+						
+	If Alltrim((cAliasSF3)->F3_ESPECIE) $ " NCP | NCC | NDE  "
+		nSigno	:=-1
+	Else
+		nSigno	:= 1
+	Endif
+    
+	If ( Alltrim((cAliasSF3)->F3_ESPECIE)=="NCP" .And. mv_par07 == 1 ) .Or. ( Alltrim((cAliasSF3)->F3_ESPECIE) != "NCC" .And. mv_par07 == 2 )
+		SF2->( dbSetOrder(1) )
+		SF2->( dbSeek( (cAliasSF3)->F3_FILIAL+(cAliasSF3)->F3_NFISCAL+(cAliasSF3)->F3_SERIE+(cAliasSF3)->F3_CLIEFOR+(cAliasSF3)->F3_LOJA ) )
+
+		lDespacho 	:= .F.
+		cEspecie 	:= IIf(!lDespacho,AllTrim(SF2->F2_ESPECIE),"DES")
+		cSerie		:= IIf(Left(SF2->F2_SERIE,1)=="E".Or.lDespacho, "E", Left(SF2->F2_SERIE,1))
+		cPictFact	:= IIf(Left(SF2->F2_SERIE,1)=="E".Or.lDespacho, "@!", "@R 9999-99999999")
+	Else
+		SF1->( dbSetOrder(1) )
+		SF1->( dbSeek( (cAliasSF3)->F3_FILIAL+(cAliasSF3)->F3_NFISCAL+(cAliasSF3)->F3_SERIE+(cAliasSF3)->F3_CLIEFOR+(cAliasSF3)->F3_LOJA ) )
+
+		lDespacho 	:= .F.
+		cEspecie 	:= IIf(!lDespacho,AllTrim(SF1->F1_ESPECIE),"DES")
+		cSerie		:= IIf(Left(SF1->F1_SERIE,1)=="E".Or.lDespacho, "E", Left(SF1->F1_SERIE,1))		
+		cPictFact	:= IIf(Left(SF1->F1_SERIE,1)=="E".Or.lDespacho, "@!", "@R 9999-99999999")		
+	EndIf
+		
+	If ( (cAliasSF3)->F3_ENTRADA<>dEntAnt )
+		If mv_par04 == 1 .And. nCont > 1
+			RaR1TotDia()  //Imprime o sub total do dia
+		EndIf
+
+		If mv_par04 == 1
+			nLin 	:= nLin+1            
+			@ nLin, 001 PSAY CTOD((cAliasSF3)->(SUBSTR(F3_ENTRADA,7,2)+"/"+SUBSTR(F3_ENTRADA,5,2)+"/"+SUBSTR(F3_ENTRADA,3,2)))
+			nLin	:= nLin+1
+		EndIf
+		
+		dEntAnt	:= (cAliasSF3)->F3_ENTRADA		
+	EndIf
+
+	nCont++
+		
+	If (nPosEsp := aScan(aTipDoc, { |x| x[1] == cEspecie+"/"+cSerie })) > 0
+		cEspecie := aTipDoc[nPosEsp][2]	
+	EndIf
+	
+	If (cAliasSF3)->F3_TIPO+(cAliasSF3)->F3_NFISCAL+(cAliasSF3)->F3_SERIE+(cAliasSF3)->F3_CLIEFOR+(cAliasSF3)->F3_LOJA # cNotaAnt
+		@ nLin,000 PSAY PadR(cEspecie, 03)
+		@ nLin,005 PSAY PadR(cSerie, 01)
+		@ nLin,007 PSAY (cAliasSF3)->(SUBSTR(F3_EMISSAO,7,2)+"/"+SUBSTR(F3_EMISSAO,5,2)+"/"+SUBSTR(F3_EMISSAO,3,2))
+    	@ nLin,016 PSAY alltrim((cAliasSF3)->F3_NFISCAL)         Picture cPictFact
+	EndIf
+	
+	//Verifica se a NF foi Anulada/Cancelada
+	If !Empty((cAliasSF3)->F3_DTCANC)
+		@ nLin,031 PSAY OemToAnsi(STR0032)   //"A N U L A D A"
+	Else
+		@ nLin,031 PSAY Subs(cRazaoSoc,1,20)	Picture "@!"
+		@ nLin,052 PSAY cLojaPC        			Picture "@!"
+		@ nLin,055 PSAY cCgc					Picture "@R 99-99999999-9"
+
+		If mv_par07 == 1	//Compras
+//			   	@ nLin,071 PSAY cProvEnt
+		Else
+			IF AllTrim((cAliasSF3)->F3_ESPECIE) == 'NCC'
+				SF1->( dbSetOrder(1) )
+				SF1->( dbSeek( (cAliasSF3)->F3_FILIAL+(cAliasSF3)->F3_NFISCAL+(cAliasSF3)->F3_SERIE+(cAliasSF3)->F3_CLIEFOR+(cAliasSF3)->F3_LOJA ) )		   	
+				cProvEnt := alltrim(SF1->F1_PROVENT)
+			Else
+				SF2->( dbSetOrder(1) )
+				SF2->( dbSeek( (cAliasSF3)->F3_FILIAL+(cAliasSF3)->F3_NFISCAL+(cAliasSF3)->F3_SERIE+(cAliasSF3)->F3_CLIEFOR+(cAliasSF3)->F3_LOJA ) )
+				cProvEnt := alltrim(SF2->F2_PROVENT)
+			 EndIF
+	   	EndIF
+
+		nValMerc	:= (cAliasSF3)->F3_VALMERC - (cAliasSF3)->EXENTAS
+		nValBrut	:= (cAliasSF3)->F3_VALCONT
+		
+		If lDespacho
+			(cAliasSF3)->PERCOTROS 	:= (cAliasSF3)->IVA105+(cAliasSF3)->IVA21+(cAliasSF3)->IVA27
+			(cAliasSF3)->IVA105		:= 0
+			(cAliasSF3)->IVA21		:= 0
+			(cAliasSF3)->IVA27		:= 0
+		EndIf
+        if alltrim(cserie)=='E'
+          //alert('antes de imprimir valores')
+        endif 
+// 		@ nLin,080 PSAY AllTrim(cTipoCli)
+		@ nLin,aNumCol[02] PSAY (nValMerc  					* nSigno)		Picture cPictVals // NETO GRAVADO
+		@ nLin,aNumCol[03] PSAY ((cAliasSF3)->IVA21       	* nSigno)   	Picture cPictVals // IVA 21
+		@ nLin,aNumCol[04] PSAY ((cAliasSF3)->IVA105      	* nSigno)   	Picture cPictVals // IVA 10,5
+		@ nLin,aNumCol[05] PSAY ((cAliasSF3)->IVA27       	* nSigno)   	Picture cPictVals // IVA 27
+		@ nLin,aNumCol[06] PSAY ((cAliasSF3)->EXENTAS     	* nSigno)   	Picture cPictVals // EXENTAS
+		@ nLin,aNumCol[07] PSAY ((cAliasSF3)->PIIBB_BA  	* nSigno)		Picture cPictVals // PERC. IIBB BA
+		@ nLin,aNumCol[08] PSAY ((cAliasSF3)->PERCIVA     	* nSigno)   	Picture cPictVals // PERC. IVA
+		@ nLin,aNumCol[09] PSAY ((cAliasSF3)->PIIBB_CF  	* nSigno)   	Picture cPictVals // PERC. IIBB CF
+//		@ nLin,aNumCol[10] PSAY ((cAliasSF3)->PERCOTROS   	* nSigno)   	Picture cPictVals // PERC. OTRAS
+//		@ nLin,aNumCol[10] PSAY ((cAliasSF3)->INTERNOS    	* nSigno)  		Picture cPictVals // IMPUESTOS INTERNOS
+		@ nLin,aNumCol[10] PSAY (nValBrut  					* nSigno) 		Picture cPictVals // TOTAL
+		
+		If ( Alltrim((cAliasSF3)->F3_ESPECIE)=="NCP" .And. mv_par07 == 1 ) .Or. ( Alltrim((cAliasSF3)->F3_ESPECIE) == "NCC" .And. mv_par07 == 2 )
+			nCValMerc		+= (nValMerc					* nSigno) // NETO GRAVADO
+			nTCVALMERC  	+= (nValMerc 					* nSigno) // NETO GRAVADO
+			nCVAR01      	+= ((cAliasSF3)->IVA21       	* nSigno) // IVA 21
+			nTCVAR01      	+= ((cAliasSF3)->IVA21       	* nSigno) // IVA 21
+			nCVAR02       	+= ((cAliasSF3)->IVA105      	* nSigno) // IVA 10,5
+			nTCVAR02      	+= ((cAliasSF3)->IVA105      	* nSigno) // IVA 10,5
+			nCVAR03       	+= ((cAliasSF3)->IVA27       	* nSigno) // IVA 27
+			nTCVAR03      	+= ((cAliasSF3)->IVA27      	* nSigno) // IVA 27
+			nCVAR04  		+= ((cAliasSF3)->EXENTAS		* nSigno) // EXENTAS
+			nTCVAR04 		+= ((cAliasSF3)->EXENTAS 		* nSigno) // EXENTAS			
+			nCVAR05       	+= ((cAliasSF3)->PIIBB_BA  	    * nSigno) // PERC. IIBB
+			nTCVAR05      	+= ((cAliasSF3)->PIIBB_BA  	    * nSigno) // PERC. IIBB
+			nCVAR06       	+= ((cAliasSF3)->PERCIVA  		* nSigno) // PERC. IVA
+			nTCVAR06    	+= ((cAliasSF3)->PERCIVA  		* nSigno) // PERC. IVA
+			nCVAR07       	+= ((cAliasSF3)->PIIBB_CF  	    * nSigno) // PERC. GANANCIAS
+			nTCVAR07      	+= ((cAliasSF3)->PIIBB_CF   	* nSigno) // PERC. GANANCIAS
+			nCVAR08       	+= ((cAliasSF3)->PERCOTROS		* nSigno) // PERC. OTRAS
+			nTCVAR08      	+= ((cAliasSF3)->PERCOTROS		* nSigno) // PERC. OTRAS
+//			nCVAR09       	+= ((cAliasSF3)->INTERNOS    	* nSigno) // IMPUESTOS INTERNOS
+//			nTCVAR09      	+= ((cAliasSF3)->INTERNOS  	* nSigno) // IMPUESTOS INTERNOS
+			nCImpTotal      += (nValBrut                 	* nSigno) // TOTAL
+			nTCImpTotal     += (nValBrut				 	* nSigno) // TOTAL
+		ElseIf ( Alltrim((cAliasSF3)->F3_ESPECIE)=="NDP" .And. mv_par07 == 1 ) .Or. ( Alltrim((cAliasSF3)->F3_ESPECIE) == "NDC" .And. mv_par07 == 2 )
+			nDValMerc		+= (nValMerc				 	* nSigno) // NETO GRAVADO
+			nTDVALMERC      += (nValMerc				 	* nSigno) // NETO GRAVADO
+			nDVAR01       	+= ((cAliasSF3)->IVA21  		* nSigno) // IVA 21
+			nTDVAR01      	+= ((cAliasSF3)->IVA21  		* nSigno) // IVA 21
+			nDVAR02       	+= ((cAliasSF3)->IVA105  		* nSigno) // IVA 10,5
+			nTDVAR02      	+= ((cAliasSF3)->IVA105  		* nSigno) // IVA 10,5
+			nDVAR03       	+= ((cAliasSF3)->IVA27  		* nSigno) // IVA 27
+			nTDVAR03      	+= ((cAliasSF3)->IVA27  		* nSigno) // IVA 27
+			nDVAR04       	+= ((cAliasSF3)->EXENTAS  		* nSigno) // EXENTAS
+			nTDVAR04      	+= ((cAliasSF3)->EXENTAS 		* nSigno) // EXENTAS
+			nDVAR05       	+= ((cAliasSF3)->PIIBB_BA  	    * nSigno) // PERC. IIBB
+			nTDVAR05      	+= ((cAliasSF3)->PIIBB_BA  	    * nSigno) // PERC. IIBB
+			nDVAR06       	+= ((cAliasSF3)->PERCIVA  		* nSigno) // PERC. IVA
+			nTDVAR06    	+= ((cAliasSF3)->PERCIVA  		* nSigno) // PERC. IVA
+			nDVAR07       	+= ((cAliasSF3)->PIIBB_CF  		* nSigno) // PERC. GANANCIAS
+			nTDVAR07      	+= ((cAliasSF3)->PIIBB_CF  		* nSigno) // PERC. GANANCIAS									
+			nDVAR08       	+= ((cAliasSF3)->PERCOTROS  	* nSigno) // PERC. OTRAS
+			nTDVAR08      	+= ((cAliasSF3)->PERCOTROS  	* nSigno) // PERC. OTRAS
+//			nDVAR09       	+= ((cAliasSF3)->INTERNOS    	* nSigno) // IMPUESTOS INTERNOS
+//			nTDVAR09      	+= ((cAliasSF3)->INTERNOS    	* nSigno) // IMPUESTOS INTERNOS
+			nDImpTotal      += (nValBrut				 	* nSigno) // TOTAL
+			nTDImpTotal     += (nValBrut				 	* nSigno) // TOTAL
+		Else //Acumula valores referente a Notas Fiscais/Fatura
+			nFValMerc    	+= (nValMerc				 	* nSigno) // NETO GRAVADO
+			nTFVALMERC 		+= (nValMerc				 	* nSigno) // NETO GRAVADO
+			nFVAR01       	+= ((cAliasSF3)->IVA21  		* nSigno) // IVA 21
+			nTFVAR01      	+= ((cAliasSF3)->IVA21  		* nSigno) // IVA 21
+			nFVAR02       	+= ((cAliasSF3)->IVA105  		* nSigno) // IVA 10,5
+			nTFVAR02      	+= ((cAliasSF3)->IVA105  		* nSigno) // IVA 10,5
+			nFVAR03       	+= ((cAliasSF3)->IVA27  		* nSigno) // IVA 27
+			nTFVAR03      	+= ((cAliasSF3)->IVA27  		* nSigno) // IVA 27
+			nFVAR04  		+= ((cAliasSF3)->EXENTAS		* nSigno) // EXENTAS
+			nTFVAR04 		+= ((cAliasSF3)->EXENTAS		* nSigno) // EXENTAS
+			nFVAR05       	+= ((cAliasSF3)->PIIBB_BA  	    * nSigno) // PERC. IIBB
+			nTFVAR05      	+= ((cAliasSF3)->PIIBB_BA  	    * nSigno) // PERC. IIBB	
+			nFVAR06       	+= ((cAliasSF3)->PERCIVA  		* nSigno) // PERC. IVA
+			nTFVAR06    	+= ((cAliasSF3)->PERCIVA  		* nSigno) // PERC. IVA
+			nFVAR07       	+= ((cAliasSF3)->PIIBB_CF  		* nSigno) // PERC. GANANCIAS
+			nTFVAR07      	+= ((cAliasSF3)->PIIBB_CF  		* nSigno) // PERC. GANANCIAS											
+			nFVAR08       	+= ((cAliasSF3)->PERCOTROS  	* nSigno) // PERC. OTRAS
+			nTFVAR08      	+= ((cAliasSF3)->PERCOTROS  	* nSigno) // PERC. OTRAS
+//			nFVAR09       	+= ((cAliasSF3)->INTERNOS    	* nSigno) // IMPUESTOS INTERNOS
+//			nTFVAR09      	+= ((cAliasSF3)->INTERNOS    	* nSigno) // IMPUESTOS INTERNOS
+			nFImpTotal      += (nValBrut			    	* nSigno) // TOTAL
+			nTFImpTotal     += (nValBrut			    	* nSigno) // TOTAL
+		EndIf
+		
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤp
+		//ณBusca y discrimina por tipo de cliente (Si esta cargada la tabla de tipos en el SX5).ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤp
+		If lTipos       // Monta o resumo por Condicao Fiscal(Tipo de Proveedor)
+			If mv_par07 == 1
+				nTipo := AScan( aTipos,{|X| alltrim(x[1])==Alltrim(SA2->A2_TIPO) })
+				// Para Tierra del Fuego esta acumulando los valores en "Sujeto del Exterior", cuando deberia
+				// acumular en "Exento", por eso lo fuerzo.
+				IF SA2->A2_EST == 'TF' .AND. SA2->A2_TIPO == 'E'
+					nTipo := AScan( aTipos,{|X| alltrim(x[1])==Alltrim("X") })
+				ENDIF
+			Else
+				nTipo := AScan( aTipos,{|X| alltrim(x[1])==Alltrim(SA1->A1_TIPO) })			
+			EndIf
+
+			If nTipo == 0
+				aTotCFis[Len(aTotCFis)][1]:=	aTotCFis[Len(aTotCFis)][1] + (nSigno * nValMerc				) // NETO GRAVADO
+				aTotCFis[Len(aTotCFis)][2]:=	aTotCFis[Len(aTotCFis)][2] + (nSigno *(cAliasSF3)->IVA21		) // IVA 21
+				aTotCFis[Len(aTotCFis)][3]:=	aTotCFis[Len(aTotCFis)][3] + (nSigno *(cAliasSF3)->IVA105		) // IVA 10,5
+				aTotCFis[Len(aTotCFis)][4]:=	aTotCFis[Len(aTotCFis)][4] + (nSigno *(cAliasSF3)->IVA27  		) // IVA 27
+				aTotCFis[Len(aTotCFis)][5]:=	aTotCFis[Len(aTotCFis)][5] + (nSigno *(cAliasSF3)->EXENTAS		) // EXENTAS
+				aTotCFis[Len(aTotCFis)][6]:=	aTotCFis[Len(aTotCFis)][6] + (nSigno *(cAliasSF3)->PIIBB_BA	) // PERC. IIBB
+				aTotCFis[Len(aTotCFis)][7]:=	aTotCFis[Len(aTotCFis)][7] + (nSigno *(cAliasSF3)->PERCIVA		) // PERC. IVA
+				aTotCFis[Len(aTotCFis)][8]:=	aTotCFis[Len(aTotCFis)][8] + (nSigno *(cAliasSF3)->PIIBB_CF	) // PERC. GANANCIAS
+				aTotCFis[Len(aTotCFis)][9]:=	aTotCFis[Len(aTotCFis)][9] + (nSigno *(cAliasSF3)->PERCOTROS	) // PERC. OTRAS
+//				aTotCFis[Len(aTotCFis)][10]:=	aTotCFis[Len(aTotCFis)][10]+ (nSigno *(cAliasSF3)->INTERNOS  	) // IMPUESTOS INTERNOS
+				aTotCFis[Len(aTotCFis)][11]:=	aTotCFis[Len(aTotCFis)][11]+ (nSigno * nValBrut				) // TOTAL
+			Else
+				aTotCFis[nTipo][1]:=	aTotCFis[nTipo][1] + (nSigno * nValMerc				) // NETO GRAVADO
+				aTotCFis[nTipo][2]:=	aTotCFis[nTipo][2] + (nSigno *(cAliasSF3)->IVA21		) // IVA 21 
+				aTotCFis[nTipo][3]:=	aTotCFis[nTipo][3] + (nSigno *(cAliasSF3)->IVA105		) // IVA 10,5
+				aTotCFis[nTipo][4]:=	aTotCFis[nTipo][4] + (nSigno *(cAliasSF3)->IVA27		) // IVA 27
+				aTotCFis[nTipo][5]:=	aTotCFis[nTipo][5] + (nSigno *(cAliasSF3)->EXENTAS		) // EXENTAS
+				aTotCFis[nTipo][6]:=	aTotCFis[nTipo][6] + (nSigno *(cAliasSF3)->PIIBB_BA	) // PERC. IIBB
+				aTotCFis[nTipo][7]:=	aTotCFis[nTipo][7] + (nSigno *(cAliasSF3)->PERCIVA		) // PERC. IVA
+				aTotCFis[nTipo][8]:=	aTotCFis[nTipo][8] + (nSigno *(cAliasSF3)->PIIBB_CF	) // PERC. GANANCIAS   
+				aTotCFis[nTipo][9]:=	aTotCFis[nTipo][9] + (nSigno *(cAliasSF3)->PERCOTROS	) // PERC. OTRAS   
+//				aTotCFis[nTipo][10]:=	aTotCFis[nTipo][10]+ (nSigno *(cAliasSF3)->INTERNOS  	) // IMPUESTOS INTERNOS   
+				aTotCFis[nTipo][11]:=	aTotCFis[nTipo][11]+ (nSigno * nValBrut				) // TOTAL
+			Endif
+		Endif
+		
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤp
+		//ณBusca y discrimina por Provincia (Si esta cargada la tabla de Provincia en el SX5).  ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤp
+		If lProvincia       // Monta o resumo por Provincia (UF do Proveedor )
+			If mv_par07 == 1
+				nTipo := AScan( aProvincia,{|X| alltrim(x[1])==Alltrim(SA2->A2_EST) })
+			Else
+				nTipo := AScan( aProvincia,{|X| alltrim(x[1])==Alltrim(SA1->A1_EST) })
+			EndIf				
+			
+			If nTipo == 0
+				aTotProv[Len(aTotProv)][1]:=	aTotProv[Len(aTotProv)][1] + (nSigno * nValMerc				) // NETO GRAVADO
+				aTotProv[Len(aTotProv)][2]:=	aTotProv[Len(aTotProv)][2] + (nSigno *(cAliasSF3)->IVA21		) // IVA 21
+				aTotProv[Len(aTotProv)][3]:=	aTotProv[Len(aTotProv)][3] + (nSigno *(cAliasSF3)->IVA105		) // IVA 10,5
+				aTotProv[Len(aTotProv)][4]:=	aTotProv[Len(aTotProv)][4] + (nSigno *(cAliasSF3)->IVA27  		) // IVA 27
+				aTotProv[Len(aTotProv)][5]:=	aTotProv[Len(aTotProv)][5] + (nSigno *(cAliasSF3)->EXENTAS		) // EXENTAS
+				aTotProv[Len(aTotProv)][6]:=	aTotProv[Len(aTotProv)][6] + (nSigno *(cAliasSF3)->PIIBB_BA	) // PERC. IIBB
+				aTotProv[Len(aTotProv)][7]:=	aTotProv[Len(aTotProv)][7] + (nSigno *(cAliasSF3)->PERCIVA		) // PERC. IVA
+				aTotProv[Len(aTotProv)][8]:=	aTotProv[Len(aTotProv)][8] + (nSigno *(cAliasSF3)->PERCIBB_CF	) // PERC. GANANCIAS   
+				aTotProv[Len(aTotProv)][9]:=	aTotProv[Len(aTotProv)][9] + (nSigno *(cAliasSF3)->PERCOTROS	) // PERC. OTRAS   
+//				aTotProv[Len(aTotProv)][10]:=	aTotProv[Len(aTotProv)][10]+ (nSigno *(cAliasSF3)->INTERNOS  	) // IMPUESTOS INTERNOS  
+				aTotProv[Len(aTotProv)][11]:=	aTotProv[Len(aTotProv)][11]+ (nSigno * nValBrut				) // TOTAL
+			Else
+				aTotProv[nTipo][1]:=	aTotProv[nTipo][1] + (nSigno * nValMerc				) // NETO GRAVADO
+				aTotProv[nTipo][2]:=	aTotProv[nTipo][2] + (nSigno *(cAliasSF3)->IVA21		) // IVA 21
+				aTotProv[nTipo][3]:=	aTotProv[nTipo][3] + (nSigno *(cAliasSF3)->IVA105		) // IVA 10,5
+				aTotProv[nTipo][4]:=	aTotProv[nTipo][4] + (nSigno *(cAliasSF3)->IVA27		) // IVA 27
+				aTotProv[nTipo][5]:=	aTotProv[nTipo][5] + (nSigno *(cAliasSF3)->EXENTAS		) // EXENTAS
+				aTotProv[nTipo][6]:=	aTotProv[nTipo][6] + (nSigno *(cAliasSF3)->PIIBB_BA	) // PERC. IIBB
+				aTotProv[nTipo][7]:=	aTotProv[nTipo][7] + (nSigno *(cAliasSF3)->PERCIVA		) // PERC. IVA
+				aTotProv[nTipo][8]:=	aTotProv[nTipo][8] + (nSigno *(cAliasSF3)->PIIBB_CF		) // PERC. GANANCIAS	   
+				aTotProv[nTipo][9]:=	aTotProv[nTipo][9] + (nSigno *(cAliasSF3)->PERCOTROS	) // PERC. OTRAS	   
+//				aTotProv[nTipo][10]:=	aTotProv[nTipo][10]+ (nSigno *(cAliasSF3)->INTERNOS  	) // IMPUESTOS INTERNOS  
+				aTotProv[nTipo][11]:=	aTotProv[nTipo][11]+ (nSigno * nValBrut				) // TOTAL
+			Endif
+		Endif		
+		
+		If lPtoVta       // Carga resumen por Punto de venta
+			cPtoVta := SubStr((cAliasSF3)->F3_NFISCAL,01,04)
+
+			If ( nTipo := AScan(aPtoVta,{|X| AllTrim(x[1]) == cPtoVta }) ) == 0
+				Aadd(aPtoVta,{cPtoVta,"Punto de venta: "+cPtoVta} )
+				Aadd(aTotPto,{0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,cPtoVta})
+
+				aTotPto[Len(aTotPto)][01]:= aTotPto[Len(aTotPto)][01] + (nSigno * nValMerc			   	) // NETO GRAVADO
+				aTotPto[Len(aTotPto)][02]:= aTotPto[Len(aTotPto)][02] + (nSigno *(cAliasSF3)->IVA21		) // IVA 21
+				aTotPto[Len(aTotPto)][03]:= aTotPto[Len(aTotPto)][03] + (nSigno *(cAliasSF3)->IVA105		) // IVA 10,5
+				aTotPto[Len(aTotPto)][04]:= aTotPto[Len(aTotPto)][04] + (nSigno *(cAliasSF3)->IVA27  	) // IVA 27
+				aTotPto[Len(aTotPto)][05]:= aTotPto[Len(aTotPto)][05] + (nSigno *(cAliasSF3)->EXENTAS	) // EXENTAS
+				aTotPto[Len(aTotPto)][06]:= aTotPto[Len(aTotPto)][06] + (nSigno *(cAliasSF3)->PIIBB_BA	) // PERC. IIBB
+				aTotPto[Len(aTotPto)][07]:= aTotPto[Len(aTotPto)][07] + (nSigno *(cAliasSF3)->PERCIVA	) // PERC. IVA
+				aTotPto[Len(aTotPto)][08]:= aTotPto[Len(aTotPto)][08] + (nSigno *(cAliasSF3)->PIIBB_CF	) // PERC. GANANCIAS   
+				aTotPto[Len(aTotPto)][09]:= aTotPto[Len(aTotPto)][09] + (nSigno *(cAliasSF3)->PERCOTROS	) // PERC. OTRAS   
+//				aTotPto[Len(aTotPto)][10]:= aTotPto[Len(aTotPto)][10] + (nSigno *(cAliasSF3)->INTERNOS  	) // IMPUESTOS INTERNOS  
+				aTotPto[Len(aTotPto)][11]:= aTotPto[Len(aTotPto)][11] + (nSigno * nValBrut			   	) // TOTAL								
+			Else
+				aTotPto[nTipo][01]:= aTotPto[nTipo][01] + (nSigno * nValMerc				) // NETO GRAVADO
+				aTotPto[nTipo][02]:= aTotPto[nTipo][02] + (nSigno *(cAliasSF3)->IVA21		) // IVA 21
+				aTotPto[nTipo][03]:= aTotPto[nTipo][03] + (nSigno *(cAliasSF3)->IVA105	) // IVA 10,5
+				aTotPto[nTipo][04]:= aTotPto[nTipo][04] + (nSigno *(cAliasSF3)->IVA27		) // IVA 27
+				aTotPto[nTipo][05]:= aTotPto[nTipo][05] + (nSigno *(cAliasSF3)->EXENTAS	) // EXENTAS
+				aTotPto[nTipo][06]:= aTotPto[nTipo][06] + (nSigno *(cAliasSF3)->PIIBB_BA	) // PERC. IIBB
+				aTotPto[nTipo][07]:= aTotPto[nTipo][07] + (nSigno *(cAliasSF3)->PERCIVA	) // PERC. IVA
+				aTotPto[nTipo][08]:= aTotPto[nTipo][08] + (nSigno *(cAliasSF3)->PIIBB_CF	) // PERC. GANANCIAS	   
+				aTotPto[nTipo][09]:= aTotPto[nTipo][09] + (nSigno *(cAliasSF3)->PERCOTROS	) // PERC. OTRAS	   
+//				aTotPto[nTipo][10]:= aTotPto[nTipo][10] + (nSigno *(cAliasSF3)->INTERNOS 	) // IMPUESTOS INTERNOS  
+				aTotPto[nTipo][11]:= aTotPto[nTipo][11] + (nSigno * nValBrut				) // TOTAL
+			EndIf
+		Endif				
+		
+		cNotaAnt	:= (cAliasSF3)->F3_TIPO+(cAliasSF3)->F3_NFISCAL+(cAliasSF3)->F3_SERIE+(cAliasSF3)->F3_CLIEFOR+(cAliasSF3)->F3_LOJA
+	EndIf
+	
+	nLin := nLin + 1
+	
+//	If Empty((cAliasSF3)->F3_DTCANC)
+
+		For nQ := 1 To Len(aHeadLF)
+			cCampo	:= AllTrim(aHeadLF[nQ][2])
+			cTipo	:= AllTrim(aHeadLF[nQ][8])
+			cStrAux	:= "(cAliasSF3)->"+cCampo
+			Do Case
+				Case cCampo == "F3_VALMERC"
+					aAdd(aColsLin,nValMerc)
+				Case cTipo == "D"			
+					aAdd(aColsLin,SToD(&(cStrAux)))
+				Case cTipo == "C"     
+						aAdd(aColsLin,"'"+&(cStrAux))
+	        	OtherWise
+					aAdd(aColsLin,&(cStrAux))
+			EndCase
+		Next
+
+		FOR nI := 1 To Len(aHeadLF)
+			IF aHeadLF[nI][1] =="F3_ESPECIE"	// ** 1 **
+				If Empty((cAliasSF3)->F3_DTCANC)
+					aColsLin[nI]:= cEspecie 
+				else
+					aColsLin[nI]:= "ANULADA"
+					cSerie:=Left((cAliasSF3)->F3_SERIE,1)
+				EndIf
+            EndIF
+			IF aHeadLF[nI][1] == "F3_SERIE"		// ** 2 **
+				aColsLin[nI]:= cSerie
+			EndIF
+			// ** 3 - Emissao **
+			// ** 4 - Nota Fiscal **
+			IF aHeadLF[nI][1] == "RAZSOC"		// ** 5 **
+				aColsLin[nI]:= cRazaoSoc
+			EndIF
+			IF aHeadLF[nI][1] == "F3_LOJA"		// ** 6 **
+			   	aColsLin[nI]:= cLojaPC
+			EndIF
+			IF aHeadLF[nI][1] == "CUIT" 		// ** 7 **
+				aColsLin[nI]:= cCgc
+			EndIF
+			IF aHeadLF[nI][1] == "F3_ESTADO"	// ** 8 **
+			   	aColsLin[nI]:= cProvent
+			EndIF
+			IF aHeadLF[nI][1] == "F3_TIPO"		// ** 9 **
+				aColsLin[nI]:= cTipoCli
+			EndIF
+			IF aHeadLF[nI][1] == "NETOGRA"		// ** 10 **
+				//If (cAliasSF3)->IVA21 == 0 .AND. (cAliasSF3)->EXENTAS <> 0 .AND. alltrim(cserie)<>'E'
+				//  aColsLin[nI]:=Round((((cAliasSF3)->F3_VALMERC)/1.21),2) * nSigno
+				//Else
+				nValMerc := (cAliasSF3)->F3_VALMERC - (cAliasSF3)->EXENTAS
+				aColsLin[nI]:= nValMerc * nSigno
+				//Endif
+			EndIF
+			IF aHeadLF[nI][1] == "IVA21"
+				IF MV_PAR07 == 1
+					SF3->( dbSetOrder(4) )		// 4 - F3_CLIEFOR + F3_LOJA + F3_NFISCAL + F3_SERIE
+					SF3->( dbSeek( xFilial("SF3")+(cAliasSF3)->F3_CLIEFOR+(cAliasSF3)->F3_LOJA+ (cAliasSF3)->F3_NFISCAL+(cAliasSF3)->F3_SERIE) )
+
+					IF SF3->F3_ALQIMP1 == nVal105 .AND. SF3->F3_VALIMP1 > 0
+						aColsLin[nI]:=0
+					EndIF
+				EndIF
+			EndIF
+			IF aHeadLF[nI][1] == "IVA105"
+				IF MV_PAR07 == 1
+					SF3->( dbSetOrder(4) )		// 4 - F3_CLIEFOR + F3_LOJA + F3_NFISCAL + F3_SERIE
+					SF3->( dbSeek( xFilial("SF3")+(cAliasSF3)->F3_CLIEFOR+(cAliasSF3)->F3_LOJA+ (cAliasSF3)->F3_NFISCAL+(cAliasSF3)->F3_SERIE) )
+
+					IF SF3->F3_ALQIMP1 == nVal105 .AND. SF3->F3_VALIMP1 > 0
+						aColsLin[nI] := SF3->F3_VALIMP1 * nSigno
+					EndIF
+				EndIF
+			EndIF
+			IF aHeadLF[nI][1] == "IVA21"
+				//If (cAliasSF3)->IVA21 == 0 .AND. (cAliasSF3)->EXENTAS <> 0 .AND. alltrim(cserie)<>'E'
+				//  aColsLin[nI]:=Round((((cAliasSF3)->F3_VALMERC)/1.21)*0.21,2)
+				//Else
+				aColsLin[nI]:= aColsLin[nI] * nSigno
+				//Endif
+			EndIF
+			IF aHeadLF[nI][1] == "IVA105"
+				aColsLin[nI]:= aColsLin[nI] * nSigno
+			EndIF
+			IF aHeadLF[nI][1] == "IVA27"
+				aColsLin[nI]:= aColsLin[nI] * nSigno
+			EndIF
+			IF aHeadLF[nI][1] == "PERCIVA"
+				aColsLin[nI]:= aColsLin[nI] * nSigno
+			EndIF
+			IF aHeadLF[nI][1] == "PIIBB_CF"
+				aColsLin[nI]:= aColsLin[nI] * nSigno
+			EndIF
+			IF aHeadLF[nI][1] == "PIIBB_BA"
+				aColsLin[nI]:= aColsLin[nI] * nSigno
+			EndIF
+			IF aHeadLF[nI][1] == "PERCOTROS"
+
+				aColsLin[nI]:= aColsLin[nI] * nSigno
+			EndIF
+			IF aHeadLF[nI][1] == "EXENTAS"
+				aColsLin[nI]:= aColsLin[nI] * nSigno
+			EndIF
+			IF aHeadLF[nI][1] == "F3_VALMERC"
+				aColsLin[nI]:= aColsLin[nI] * nSigno
+			EndIF
+			IF aHeadLF[nI][1] == "F3_VALCONT"
+				aColsLin[nI]:= aColsLin[nI] * nSigno
+			EndIF			
+		Next nI
+	
+		aAdd(aColsLin,.F.)
+		aAdd(aColsLF, aClone(aColsLin))
+		aColsLin := {}
+//	EndIf
+
+	(cAliasSF3)->(dbSkip())
+	lImpTDia := .F.  //Flag de controle de quebra por dia
+EndDo
+
+// Cambio los nombres de las columnas para que sean iguales a la impresion.
+
+FOR nI := 1 TO Len(aHeadLF)
+	IF aHeadLF[nI][1] == "F3_ENTRADA"		// 1
+		aHeadLF[nI][1] := "FECHA CONTABLE"
+		aHeadLF[nI][8] := "D"
+	EndIF
+	IF aHeadLF[nI][1] == "F3_ESPECIE"		// 2
+		aHeadLF[nI][1] := "TIPO"
+	EndIF
+	IF aHeadLF[nI][1] == "F3_SERIE"	   		// 3
+		aHeadLF[nI][1] := "SERIE"
+	EndIF
+	IF aHeadLF[nI][1] == "F3_EMISSAO"		// 4
+		aHeadLF[nI][1] := "EMISION"
+		aHeadLF[nI][8] := "D"
+	EndIF
+	IF aHeadLF[nI][1] == "F3_NFISCAL"		// 5
+		aHeadLF[nI][1] := "COMPROBANTE"
+	EndIF
+	IF aHeadLF[nI][1] == "RAZSOC"			// 6
+		aHeadLF[nI][1] := "RAZON SOCIAL"
+	EndIF
+	IF aHeadLF[nI][1] == "F3_LOJA"			// 7 
+		aHeadLF[nI][1] := "LOJA"
+	EndIF
+	IF aHeadLF[nI][1] == "CUIT"				// 8
+		aHeadLF[nI][1] := "C.U.I.T."
+	EndIF
+	IF aHeadLF[nI][1] == "F3_ESTADO"		// 9
+		aHeadLF[nI][1] := "CP"
+	EndIF
+	IF aHeadLF[nI][1] == "F3_TIPO"			// 10
+		aHeadLF[nI][1] := "TIPO CLIENTE"
+	EndIF
+	IF aHeadLF[nI][1] == "NETOGRA"			// 11
+		aHeadLF[nI][1] := "NETO GRAVADO"
+	EndIF
+	IF aHeadLF[nI][1] == "IVA21"			// 12
+		aHeadLF[nI][1] := "IVA 21%"
+	EndIF
+	IF aHeadLF[nI][1] == "IVA105"			// 13
+		aHeadLF[nI][1] := "IVA 10,5%"
+	EndIF
+	IF aHeadLF[nI][1] == "IVA27"			// 14
+		aHeadLF[nI][1] := "IVA 27%"
+	EndIF
+	IF aHeadLF[nI][1] == "EXENTAS"			// 15
+		aHeadLF[nI][1] := "Ex/N.G."
+	EndIF
+	IF aHeadLF[nI][1] == "PERCIIBB"			// 16
+		aHeadLF[nI][1] := "PERCEPCION I.B."
+	EndIF
+	IF aHeadLF[nI][1] == "PERCIVA"			// 17
+		aHeadLF[nI][1] := "PERCEPCION IVA"
+	EndIF
+	IF aHeadLF[nI][1] == "PERCGAN"			// 18
+		aHeadLF[nI][1] := "PERCEPCION GCIA."
+	EndIF
+	IF aHeadLF[nI][1] == "PERCOTROS"		// 19
+		aHeadLF[nI][1] := "IVA IMPO."
+	EndIF
+	IF aHeadLF[nI][1] == "F3_VALCONT"		// 20
+		aHeadLF[nI][1] := "TOTAL"
+	EndIF
+	
+Next nI		
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณDispara a funcao para impressao dos Totalizadores.   ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+If ( mv_par04 == 1 .And. !lImpTDia )
+	RaR1TotDia()   // Imprime o sub total do dia
+EndIf
+
+RaR1TotPg(,.T.,.T.)   // Imprime o Sub Total Impresso
+
+If mv_par08 == 1             
+
+cArq := CriaTrab(Nil, .F.)
+
+cPath := "\\Server-02\mp11\Padrones\"
+
+nArq := FCreate(cPath + cArq + ".CSV")
+
+If nArq == -1
+	MsgAlert("No pudo crear el archivo csv!")
+	Return
+EndIf
+
+For ll:=1 to Len(aHeadLF)          
+	If ll<Len(aHeadLF)
+		FWrite(nArq, aHeadLF[ll][1]+";")
+	Else
+		FWrite(nArq, aHeadLF[ll][1]+ Chr(13) + Chr(10))
+	EndIf
+Next
+
+dbSelectArea(cAliasSF3)
+dbGoTop()
+/*
+ll:=0
+For kk:=1 to Len(aColsLF)
+	For ll:=1 to Len(aHeadLF)        
+		If ll<Len(aHeadLF)
+		    If (aHeadLF[ll][8]) $ "C/M"
+				FWrite(nArq, aColsLF[kk][ll]+";")
+			Elseif (aHeadLF[ll][8]) == "N"
+				FWrite(nArq, cValToChar(aColsLF[kk][ll])+";")
+			Elseif (aHeadLF[ll][8]) == "D"
+				FWrite(nArq, DTOC(aColsLF[kk][ll])+";")
+			Endif   
+		Else        
+		If (aHeadLF[ll][8]) $ "C/M"
+				FWrite(nArq, aColsLF[kk][ll]+ Chr(13) + Chr(10))
+			Elseif (aHeadLF[ll][8]) == "N"
+				FWrite(nArq, cValToChar(aColsLF[kk][ll])+ Chr(13) + Chr(10))
+			Elseif (aHeadLF[ll][8]) == "D"
+				FWrite(nArq, DTOC(aColsLF[kk][ll])+ Chr(13) + Chr(10))
+			Endif   
+		EndIf
+	Next
+Next                      
+*/
+ll:=0
+	For kk:=1 to Len(aColsLF)
+		For ll:=1 to Len(aHeadLF)        
+			If ll<Len(aHeadLF)
+		    	If (aHeadLF[ll][8]) $ "C/M"
+					FWrite(nArq, aColsLF[kk][ll]+";")
+				Elseif (aHeadLF[ll][8]) == "N"
+					FWrite(nArq, StrTran(CVALTOCHAR(aColsLF[kk][ll]),'.',',')+";" )
+				Elseif (aHeadLF[ll][8]) == "D"
+				 //	FWrite(nArq, DTOC(aColsLF[kk][ll])+";")
+				 	FWrite(nArq, Substring(aColsLF[kk][ll],2,4)+"/"+Substring(aColsLF[kk][ll],6,2)+"/"+Substring(aColsLF[kk][ll],8,2)+";")
+				Endif   
+			Else        
+				If (aHeadLF[ll][8]) $ "C/M"
+					FWrite(nArq, aColsLF[kk][ll]+ Chr(13) + Chr(10))
+				Elseif (aHeadLF[ll][8]) == "N"
+					FWrite(nArq, StrTran(CVALTOCHAR(aColsLF[kk][ll]),'.',',')+ Chr(13) + Chr(10) )
+				Elseif (aHeadLF[ll][8]) == "D"
+				//	FWrite(nArq, DTOC(aColsLF[kk][ll])+ Chr(13) + Chr(10)) 
+					FWrite(nArq, Substring(aColsLF[kk][ll],2,4)+"/"+Substring(aColsLF[kk][ll],6,2)+"/"+Substring(aColsLF[kk][ll],8,2)+ Chr(13) + Chr(10))
+				Endif   
+			EndIf
+		Next
+	Next
+
+
+FClose(nArq)  
+If !ApOleClient("MSExcel")
+	MsgAlert("Microsoft Excel no esta instalado! "+ Chr(13)+Chr(10)+"Se genero el archivo:" +cPath + cArq + ".CSV")
+//	Return
+Else
+	oExcel := MSExcel():New()
+	oExcel:WorkBooks:Open(cPath + cArq + ".CSV")
+	oExcel:SetVisible(.T.)
+	oExcel:Destroy()
+	FErase(cPath + cArq + ".CSV") 
+EndIf
+/*
+	dbSelectArea(cAliasSF3)
+	dbGoTop()
+	DlgToExcel({ {"GETDADOS","LIBRO DE IVA "+IIF(mv_par07==1,"C O M P R A S","V E N T A S"),aHeadLF,aColsLF}})
+*/
+EndIf
+
+If mv_par06 == 1
+	RaR1Resumo()  // Imprime o resumo do relatorio
+EndIf
+
+Set Device To Screen
+If aReturn[5] == 1
+	Set Printer TO
+	dbcommitAll()
+	ourspool(wnrel)
+Endif
+
+MS_FLUSH()
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณRAR1Cab   บAutor  ณGilson da Silva     บ Data ณ  06/01/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Cabecalho do Libro de IVA ( Compras ).			          บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Livros Fiscais                                             บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function RAR1Cab()
+
+Local aDriver	:=	ReadDriver()
+Local nDes		:= 0
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณVariaveis utilizadas no cabecalhoณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+cTitulo    := OemToAnsi(STR0009) //"LIBRO DE  I.V.A. "
+cTitulo    := cTitulo + IIF(mv_par07==1,"C O M P R A S","V E N T A S")
+cTitulo    := cTitulo + OemToAnsi(STR0026) //" - Desde : "
+cTitulo    := cTitulo + DTOC(mv_par01)
+cTitulo    := cTitulo + OemToAnsi(STR0027) //"   Hasta : "
+cTitulo    := cTitulo + DTOC(mv_par02)
+cEmpresa   := SM0->M0_NOMECOM
+cInscr     := InscrEst()
+cCUIT	   := TRANSFORM(SM0->M0_CGC,"@R 99-99.999.999-9")
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณCabecalho para o Relatorio.  ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+If nPagina == 0
+	nDes -= 1
+EndIf
+
+nPagina := nPagina + 1
+@ 00+nDes,000 PSAY &(aDriver[5])
+@ 02+nDes,000 PSAY OemToAnsi(STR0011) + cEmpresa 			//"Empresa: "
+@ 03+nDes,000 PSAY OemToAnsi(STR0012) + StrZero(nPagina,6) 	//"Pagina Nro.: "
+@ 05+nDes,000 PSAY cTitulo
+@ 06+nDes,000 PSAY __PrtFatLine( )
+@ 07+nDes,000 PSAY OemToAnsi(STR0013)//"Tipo  Serie  Comprobante     Razon Social          C.U.I.T."
+@ 07+nDes,aNumCol[02] PSAY OemToAnsi(STR0068)  
+@ 07+nDes,aNumCol[03] PSAY OemToAnsi(STR0069)  
+@ 07+nDes,aNumCol[04] PSAY OemToAnsi(STR0070)  
+@ 07+nDes,aNumCol[05] PSAY OemToAnsi(STR0071)
+@ 07+nDes,aNumCol[06] PSAY OemToAnsi(STR0072)
+@ 07+nDes,aNumCol[07] PSAY OemToAnsi(STR0073)
+@ 07+nDes,aNumCol[08] PSAY OemToAnsi(STR0074)
+@ 07+nDes,aNumCol[09] PSAY OemToAnsi(STR0075)
+//@ 07+nDes,aNumCol[10] PSAY OemToAnsi(STR0076) 
+@ 07+nDes,aNumCol[10] PSAY OemToAnsi(STR0077)
+@ 08+nDes,000 PSAY __PrtThinLine( )
+nLin := 09
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณRAR1TotDiaบAutor  ณGilson da Silva   บ Data ณ  06/01/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Rodape do Libro de IVA Compras .  	              		บฑฑ
+ฑฑบ          ณ                                                          บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Livros Fiscais                                           บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function RaR1TotDia(lRelease4)
+
+Local nLinha 	:= 0
+
+Default lRelease4 := .F.
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณDispara a funcao para impressao do Total do dia.   ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+lImpTDia	:= .T.  //Flag para controlar se imprimiu a quebra por dia
+
+nLin := nLin + 1
+@ nLin,001 PSAY "T  O  T  A  L" // Total del dia.
+@ nLin,aNumCol[02] PSAY nFValMerc + nDValMerc + nCValMerc		Picture cPictVals // NETO GRAVADO
+@ nLin,aNumCol[03] PSAY nFVAR01 + nDVAR01 + nCVAR01				Picture cPictVals // IVA 21
+@ nLin,aNumCol[04] PSAY nFVAR02 + nDVAR02 + nCVAR02				Picture cPictVals // IVA 10,5
+@ nLin,aNumCol[05] PSAY nFVAR03 + nDVAR03 + nCVAR03				Picture cPictVals // IVA 27
+@ nLin,aNumCol[06] PSAY nFVAR04 + nDVAR04 + nCVAR04				Picture cPictVals // EXENTAS
+@ nLin,aNumCol[07] PSAY nFVAR05 + nDVAR05 + nCVAR05				Picture cPictVals // PERC. IIBB
+@ nLin,aNumCol[08] PSAY nFVAR06 + nDVAR06 + nCVAR06				Picture cPictVals // PERC. IVA
+@ nLin,aNumCol[09] PSAY nFVAR07 + nDVAR07 + nCVAR07				Picture cPictVals // PERC. GANANCIAS
+//@ nLin,aNumCol[10] PSAY nFVAR08 + nDVAR08 + nCVAR08				Picture cPictVals // PERC. OTRAS
+//@ nLin,aNumCol[10] PSAY nFVAR09 + nDVAR09 + nCVAR09				Picture cPictVals // IMPUESTOS INTERNOS
+@ nLin,aNumCol[10] PSAY nFImpTotal + nDImpTotal + nCImpTotal	Picture cPictVals // TOTAL
+
+nLin := nLin +1     
+@ nLin,00 PSAY __PrtThinLine()	
+
+// zera as variaveis de sub totais
+nFVALMERC :=0
+nDVALMERC :=0
+nCVALMERC :=0
+
+For nX := 1 To 9
+	&("nFVAR0"+cValToChar(nX)) := 0
+	&("nDVAR0"+cValToChar(nX)) := 0
+	&("nCVAR0"+cValToChar(nX)) := 0	
+Next
+
+nFImpTotal:=0
+nDImpTotal:=0
+nCImpTotal:=0
+
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณRaR1TotPg บAutor  ณGilson da Silva   บ Data ณ  06/01/04     บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Totaliza pagina do Libro de IVA ( Compras  ).              บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Livros Fiscais                                             บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function RaR1TotPg(lRelease4,lFinal,lPie)
+
+Local nLinha := 0
+
+Default lRelease4 	:= .F.
+Default lFinal	 	:= .F.
+Default lPie		:= .F.
+
+If lFinal
+//	nLin := nLin + 1
+//	@ nLin,001 PSAY "TOTALES 				Periodo: "+ DTOC(mv_par01)+" - "+DTOC(mv_par02)
+//	nLin := nLin + 1
+//	@ nLin,00 PSAY __PrtThinLine()
+	nLin := nLin + 1
+	@ nLin,001 PSAY OemToAnsi(STR0019) // "Totales por Tipo Tipo de Documento :"
+	nLin := nLin + 1
+	@ nLin,015 PSAY OemToAnsi(STR0016) //"Total Facturas           : "
+	@ nLin,aNumCol[02] PSAY nTFValMerc	      	Picture cPictVals // NETO GRAVADO
+	@ nLin,aNumCol[03] PSAY nTFVAR01			Picture cPictVals // IVA 21
+	@ nLin,aNumCol[04] PSAY nTFVAR02			Picture cPictVals // IVA 10,5
+	@ nLin,aNumCol[05] PSAY nTFVAR03			Picture cPictVals // IVA 27
+	@ nLin,aNumCol[06] PSAY nTFVAR04			Picture cPictVals // EXENTAS
+	@ nLin,aNumCol[07] PSAY nTFVAR05			Picture cPictVals // PERC. IIBB
+	@ nLin,aNumCol[08] PSAY nTFVAR06			Picture cPictVals // PERC. IVA
+	@ nLin,aNumCol[09] PSAY nTFVAR07         	Picture cPictVals // PERC. GANANCIAS
+//	@ nLin,aNumCol[10] PSAY nTFVAR08			Picture cPictVals // PERC. OTRAS
+//	@ nLin,aNumCol[10] PSAY nTFVAR09			Picture cPictVals // IMPUESTOS INTERNOS
+	@ nLin,aNumCol[10] PSAY nTFImpTotal			Picture cPictVals // TOTAL
+	
+	nLin := nLin +1
+	@ nLin,015 PSAY OemToAnsi(STR0018) //"Total Notas de Debito    : "
+	@ nLin,aNumCol[02] PSAY nTDValMerc	      	Picture cPictVals // NETO GRAVADO
+	@ nLin,aNumCol[03] PSAY nTDVAR01			Picture cPictVals // IVA 21
+	@ nLin,aNumCol[04] PSAY nTDVAR02			Picture cPictVals // IVA 10,5
+	@ nLin,aNumCol[05] PSAY nTDVAR03			Picture cPictVals // IVA 27
+	@ nLin,aNumCol[06] PSAY nTDVAR04			Picture cPictVals // EXENTAS
+	@ nLin,aNumCol[07] PSAY nTDVAR05			Picture cPictVals // PERC. IIBB
+	@ nLin,aNumCol[08] PSAY nTDVAR06			Picture cPictVals // PERC. IVA
+	@ nLin,aNumCol[09] PSAY nTDVAR07         	Picture cPictVals // PERC. GANANCIAS
+//	@ nLin,aNumCol[10] PSAY nTDVAR08			Picture cPictVals // PERC. OTRAS
+//	@ nLin,aNumCol[10] PSAY nTDVAR09			Picture cPictVals // IMPUESTOS INTERNOS
+	@ nLin,aNumCol[11] PSAY nTDImpTotal			Picture cPictVals // TOTAL
+	
+	nLin := nLin +1
+	@ nLin,015 PSAY OemToAnsi(STR0017) //"Total Notas de Credito   : "
+	@ nLin,aNumCol[02] PSAY nTCValMerc	      	Picture cPictVals // NETO GRAVADO
+	@ nLin,aNumCol[03] PSAY nTCVAR01			Picture cPictVals // IVA 21
+	@ nLin,aNumCol[04] PSAY nTCVAR02			Picture cPictVals // IVA 10,5
+	@ nLin,aNumCol[05] PSAY nTCVAR03			Picture cPictVals // IVA 27
+	@ nLin,aNumCol[06] PSAY nTCVAR04			Picture cPictVals // EXENTAS
+	@ nLin,aNumCol[07] PSAY nTCVAR05			Picture cPictVals // PERC. IIBB
+	@ nLin,aNumCol[08] PSAY nTCVAR06			Picture cPictVals // PERC. IVA
+	@ nLin,aNumCol[09] PSAY nTCVAR07         	Picture cPictVals // PERC. GANANCIAS
+//	@ nLin,aNumCol[10] PSAY nTCVAR08			Picture cPictVals // PERC. OTRAS
+//	@ nLin,aNumCol[10] PSAY nTCVAR09			Picture cPictVals // IMPUESTOS INTERNOS
+	@ nLin,aNumCol[10] PSAY nTCImpTotal			Picture cPictVals // TOTAL
+
+EndIf
+
+If lPie
+	nLin += 2
+EndIf
+
+	IF lFinal
+		nLin := nLin +1
+		@ nLin,00 PSAY __PrtThinLine()
+		nLin := nLin +3
+	EndIF
+//@ nLin,001 PSAY IIF(lFinal,OemToAnsi(STR0014),"T  R  A  N  S  P  O  R  T  E") // Transporte
+@ nLin,001 PSAY IIF(lFinal,"TOTALES Periodo: "+ DTOC(mv_par01)+" - "+DTOC(mv_par02),"T  R  A  N  S  P  O  R  T  E") // Transporte
+@ nLin,aNumCol[02] PSAY (nTFValMerc+nTDValMerc+nTCValMerc)	    Picture cPictVals // NETO GRAVADO
+@ nLin,aNumCol[03] PSAY (nTFVAR01+nTDVAR01+nTCVAR01)			Picture cPictVals // IVA 21
+@ nLin,aNumCol[04] PSAY (nTFVAR02+nTDVAR02+nTCVAR02)			Picture cPictVals // IVA 10,5
+@ nLin,aNumCol[05] PSAY (nTFVAR03+nTDVAR03+nTCVAR03)			Picture cPictVals // IVA 27
+@ nLin,aNumCol[06] PSAY (nTFVAR04+nTDVAR04+nTCVAR04)			Picture cPictVals // EXENTAS
+@ nLin,aNumCol[07] PSAY (nTFVAR05+nTDVAR05+nTCVAR05)			Picture cPictVals // PERC. IIBB
+@ nLin,aNumCol[08] PSAY (nTFVAR06+nTDVAR06+nTCVAR06)			Picture cPictVals // PERC. IVA
+@ nLin,aNumCol[09] PSAY (nTFVAR07+nTDVAR07+nTCVAR07)        	Picture cPictVals // PERC. GANANCIAS
+//@ nLin,aNumCol[10] PSAY (nTFVAR08+nTDVAR08+nTCVAR08)			Picture cPictVals // PERC. OTRAS
+//@ nLin,aNumCol[10] PSAY (nTFVAR09+nTDVAR09+nTCVAR09)			Picture cPictVals // IMPUESTOS INTERNOS
+@ nLin,aNumCol[10] PSAY (nTFImpTotal+nTDImpTotal+nTCImpTotal)	Picture cPictVals // TOTAL
+nLin := nLin +1
+
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณRaR1Resumo  บAutor  ณGilson da Silva   บ Data ณ  06/01/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Rodape do Libro de IVA ( Compras  ). 		              บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Livros Fiscais                                             บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function RaR1Resumo(lRelease4)
+
+Local nQtLinRes	:= 0
+Local nX     	:= 0 
+Local nD      	:= 0
+Local nLinha	:= 0
+
+Default lRelease4 := .F.
+
+nLin	:= 1
+nCnt1 	:= 1    
+For nX:=1 To Len(aTotCFis)
+	If aTotCFis[nx,1] <> 0
+		nQtLinRes ++
+	EndIf
+Next nX
+nQtLinRes := nQtLinRes+nLin
+
+RAR1Cab()  //Imprime o Cabecalho do relatorio       
+If nQtLinRes > CANTMAX
+	RAR1Cab()  //Imprime o Cabecalho do relatorio       
+	nQtLinRes := 0
+EndIf
+
+If lTipos
+	For nD:=	1 to len(aTotCFis)
+		If aTotCFis[nD][1]<>0.00 .Or. aTotCFis[nD][2]<>0.00 .Or. aTotCFis[nD][3] <> 0.00 .Or.;
+			aTotCFis[nD][4] <> 0.00 .Or. aTotCFis[nD][5]<>0.00 .Or. aTotCFis[nD][6] <> 0.00 .Or.;
+			aTotCFis[nD][7] <> 0.00 .Or. aTotCFis[nD][8]<>0.00 .Or. aTotCFis[nD][9] <> 0.00 .Or.;
+			aTotCFis[nD][10] <> 0.00 .Or. aTotCFis[nD][11]<>0.00 .Or. aTotCFis[nD][12] <> 0.00 .Or.;
+			aTotCFis[nD][13] <> 0.00
+			If nCnt1==1
+				nLin := nLin +1
+				@nLin , 015 PSAY OemToAnsi(STR0015)  //"Totales por Condicion Fiscal "
+				nLin := nLin +1
+			Endif
+			nCnt1 ++
+			@nLin, 030 PSAY aTipos[nD][2]
+			@nLin, aNumCol[02] PSAY Trans(aTotCFis[nD][01],cPictVals) // NETO GRAVADO
+			@nLin, aNumCol[03] PSAY Trans(aTotCFis[nD][02],cPictVals) // IVA 21
+			@nLin, aNumCol[04] PSAY Trans(aTotCFis[nD][03],cPictVals) // IVA 10,5
+			@nLin, aNumCol[05] PSAY Trans(aTotCFis[nD][04],cPictVals) // IVA 27
+			@nLin, aNumCol[06] PSAY Trans(aTotCFis[nD][05],cPictVals) // EXENTAS
+			@nLin, aNumCol[07] PSAY Trans(aTotCFis[nD][06],cPictVals) // PERC. IIBB BA
+			@nLin, aNumCol[08] PSAY Trans(aTotCFis[nD][07],cPictVals) // PERC. IVA
+			@nLin, aNumCol[09] PSAY Trans(aTotCFis[nD][08],cPictVals) // PERC. IIBB CF
+//			@nLin, aNumCol[10] PSAY Trans(aTotCFis[nD][09],cPictVals) // PERC. OTRAS
+//			@nLin, aNumCol[10] PSAY Trans(aTotCFis[nD][10],cPictVals) // IMPUESTOS INTERNOS
+			@nLin, aNumCol[10] PSAY Trans(aTotCFis[nD][11],cPictVals) // TOTAL
+			nLin := nLin +1
+		Endif
+	Next
+Endif
+
+// TOTALES POR ZONA FISCAL
+nQtLinRes := 2
+For nX:=1 To Len(aTotProv)
+	If aTotProv[nx,1] <> 0
+		nQtLinRes ++
+	EndIf
+Next nX
+nQtLinRes := nQtLinRes+nLin
+
+If nQtLinRes > CANTMAX
+	RAR1Cab()  //Imprime o Cabecalho do relatorio
+	nQtLinRes := 0
+EndIf
+nCnt1 := 1
+
+If lProvincia
+	For nD:=	1 to len(aTotProv)
+		If aTotProv[nD][1]<>0.00 .Or. aTotProv[nD][2]<>0.00 .Or. aTotProv[nD][3] <> 0.00 .Or.;
+			aTotProv[nD][4] <> 0.00 .Or. aTotProv[nD][5]<>0.00 .Or. aTotProv[nD][6] <> 0.00 .Or.;
+			aTotProv[nD][7] <> 0.00 .Or. aTotProv[nD][8]<>0.00 .Or. aTotProv[nD][9] <> 0.00 .Or.;
+			aTotProv[nD][10] <> 0.00 .Or. aTotProv[nD][11]<>0.00 .Or. aTotProv[nD][12] <> 0.00 .Or.;
+			aTotProv[nD][13] <> 0.00
+			If nCnt1==1
+				nLin := nLin +1
+				@nLin , 015 PSAY OemToAnsi(STR0030)  //"Totales por Zona Fiscal "
+				nLin := nLin +1
+			Endif
+			nCnt1 ++
+			@nLin, 030 PSAY aProvincia [nD][2]
+			@nLin, aNumCol[02] PSAY Trans(aTotProv[nD][01],cPictVals) // NETO GRAVADO
+			@nLin, aNumCol[03] PSAY Trans(aTotProv[nD][02],cPictVals) // IVA 21
+			@nLin, aNumCol[04] PSAY Trans(aTotProv[nD][03],cPictVals) // IVA 10,5
+			@nLin, aNumCol[05] PSAY Trans(aTotProv[nD][04],cPictVals) // IVA 27
+			@nLin, aNumCol[06] PSAY Trans(aTotProv[nD][05],cPictVals) // EXENTAS
+			@nLin, aNumCol[07] PSAY Trans(aTotProv[nD][06],cPictVals) // PERC. IIBB BA
+			@nLin, aNumCol[08] PSAY Trans(aTotProv[nD][07],cPictVals) // PERC. IVA
+			@nLin, aNumCol[09] PSAY Trans(aTotProv[nD][08],cPictVals) // PERC. IIBB CF
+//			@nLin, aNumCol[10] PSAY Trans(aTotProv[nD][09],cPictVals) // PERC. OTRAS
+  //			@nLin, aNumCol[10] PSAY Trans(aTotProv[nD][10],cPictVals) // IMPUESTOS INTERNOS
+			@nLin, aNumCol[10] PSAY Trans(aTotProv[nD][11],cPictVals) // TOTAL
+
+			nLin := nLin +1
+		Endif
+	Next
+Endif
+
+// TOTALES POR PTO DE VENTA
+nQtLinRes := 2
+For nX:=1 To Len(aTotPto)
+	If aTotPto[nx,1] <> 0
+		nQtLinRes ++
+	EndIf
+Next nX
+nQtLinRes := nQtLinRes+nLin
+
+If nQtLinRes > CANTMAX
+	RAR1Cab()  //Imprime o Cabecalho do relatorio
+	nQtLinRes := 0
+EndIf
+
+nCnt1 := 1
+
+aTotPto := aSort(aTotPto,,, { |x,y| x[14] < y[14] } )
+aPtoVta	:= aSort(aPtoVta,,, { |x,y| x[1] < y[1] } )
+
+If lPtoVta
+	For nD := 1 To Len(aTotPto)
+		If aTotPto[nD][1]<>0.00 .Or. aTotPto[nD][2]<>0.00 .Or. aTotPto[nD][3] <> 0.00 .Or.;
+			aTotPto[nD][4] <> 0.00 .Or. aTotPto[nD][5]<>0.00 .Or. aTotPto[nD][6] <> 0.00 .Or.;
+			aTotPto[nD][7] <> 0.00 .Or. aTotPto[nD][8]<>0.00 .Or. aTotPto[nD][9] <> 0.00 .Or.;
+			aTotPto[nD][10] <> 0.00 .Or. aTotPto[nD][11]<>0.00 .Or. aTotPto[nD][12] <> 0.00 .Or.;
+			aTotPto[nD][13] <> 0.00
+			If nCnt1==1
+				nLin := nLin +1
+				@nLin , 015 PSAY "Totales por Puntos de ventas: "
+				nLin := nLin +1
+			Endif
+			nCnt1 ++
+			@nLin, 030 PSAY aPtoVta[nD][2]
+			@nLin, aNumCol[02] PSAY Trans(aTotPto[nD][01],cPictVals) // NETO GRAVADO
+			@nLin, aNumCol[03] PSAY Trans(aTotPto[nD][02],cPictVals) // IVA 21
+			@nLin, aNumCol[04] PSAY Trans(aTotPto[nD][03],cPictVals) // IVA 10,5
+			@nLin, aNumCol[05] PSAY Trans(aTotPto[nD][04],cPictVals) // IVA 27
+			@nLin, aNumCol[06] PSAY Trans(aTotPto[nD][05],cPictVals) // EXENTAS
+			@nLin, aNumCol[07] PSAY Trans(aTotPto[nD][06],cPictVals) // PERC. IIBB
+			@nLin, aNumCol[08] PSAY Trans(aTotPto[nD][07],cPictVals) // PERC. IVA
+			@nLin, aNumCol[09] PSAY Trans(aTotPto[nD][08],cPictVals) // PERC. GANANCIAS
+//			@nLin, aNumCol[10] PSAY Trans(aTotPto[nD][09],cPictVals) // PERC. OTRAS
+//			@nLin, aNumCol[10] PSAY Trans(aTotPto[nD][10],cPictVals) // IMPUESTOS INTERNOS
+			@nLin, aNumCol[10] PSAY Trans(aTotPto[nD][11],cPictVals) // TOTAL
+
+			nLin := nLin +1
+		Endif
+	Next
+EndIf
+	nLin := nLin +1
+	@ nLin,00 PSAY __PrtThinLine()
+	nLin := nLin +3
+	@ nLin,030 PSAY "TOTALES Periodo: "+ DTOC(mv_par01)+" - "+DTOC(mv_par02)
+	@ nLin,aNumCol[02] PSAY (nTFValMerc+nTDValMerc+nTCValMerc)	    Picture cPictVals // NETO GRAVADO
+	@ nLin,aNumCol[03] PSAY (nTFVAR01+nTDVAR01+nTCVAR01)			Picture cPictVals // IVA 21
+	@ nLin,aNumCol[04] PSAY (nTFVAR02+nTDVAR02+nTCVAR02)			Picture cPictVals // IVA 10,5
+	@ nLin,aNumCol[05] PSAY (nTFVAR03+nTDVAR03+nTCVAR03)			Picture cPictVals // IVA 27
+	@ nLin,aNumCol[06] PSAY (nTFVAR04+nTDVAR04+nTCVAR04)			Picture cPictVals // EXENTAS
+	@ nLin,aNumCol[07] PSAY (nTFVAR05+nTDVAR05+nTCVAR05)			Picture cPictVals // PERC. IIBB
+	@ nLin,aNumCol[08] PSAY (nTFVAR06+nTDVAR06+nTCVAR06)			Picture cPictVals // PERC. IVA
+	@ nLin,aNumCol[09] PSAY (nTFVAR07+nTDVAR07+nTCVAR07)        	Picture cPictVals // PERC. GANANCIAS
+//	@ nLin,aNumCol[10] PSAY (nTFVAR08+nTDVAR08+nTCVAR08)			Picture cPictVals // PERC. OTRAS
+	@ nLin,aNumCol[10] PSAY (nTFImpTotal+nTDImpTotal+nTCImpTotal)	Picture cPictVals // TOTAL
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณ VerImp   บAutor  ณGilson da Silva     บ Data ณ  06/01/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Verifica posicionamento de papel na Impressora             บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Livros Fiscais                                             บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function VerImp()
+
+nLin:= 0                // Contador de Linhas
+nLinIni:=0
+aDriver:=ReadDriver()
+If aReturn[5]==2
+	nOpc       := 1
+	#IFNDEF WINDOWS
+		cCor       := "B/BG"
+	#ENDIF
+	While .T.
+		
+		SetPrc(0,0)
+		dbCommitAll()
+		
+		@ 00   ,000	PSAY aDriver[5]
+		@ nLin ,000 PSAY " "
+		@ nLin ,004 PSAY "*"
+		@ nLin ,022 PSAY "."
+		
+		#IFNDEF WINDOWS
+			Set Device to Screen
+			DrawAdvWindow(OemToAnsi(STR0020),10,25,14,56) //" Formulario "
+			SetColor(cCor)
+			@ 12,27 Say OemToAnsi(STR0021) //"Formulario esta posicionado?"
+			nOpc:=Menuh({OemToAnsi(STR0022),OemToAnsi(STR0023),OemToAnsi(STR0024)},14,26,"b/w,w+/n,r/w","SNC","",1) //"Si"###"NO"###"Cancela la impresi๓n"
+			Set Device to Print
+		#ELSE
+			IF MsgYesNo(OemToAnsi(STR0021)) //"Fomulario esta posicionado ? "
+				nOpc := 1
+			ElseIF MsgYesNo(OemToAnsi(STR0025)) //"Tenta Novamente ? "
+				nOpc := 2
+			Else
+				nOpc := 3
+			Endif
+		#ENDIF
+		
+		Do Case
+			Case nOpc==1
+				lContinua := .T.
+				Exit
+			Case nOpc==2
+				Loop
+			Case nOpc==3
+				lContinua := .F.
+				Return
+		EndCase
+	End
+Endif
+Return  
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuno    ณ AjustaSX1บ Autor ณ Gilson da Silva   บ Data ณ  29.01.04    บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescrio ณ Criacao de Perguntas no SX1                                บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ MATRAR1                                                    บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+Static Function AjustaSX1(cPerg)
+
+Local aHelp	:= {}
+
+Aadd(aHelp,{{"Informe a Data Inicial"		}	,	{"Enter the Initial Date    "           	}	,{"Indique la Fecha Inicial    "  		}})	
+Aadd(aHelp,{{"Informe a Data Final"	    	}	,	{"Enter the Final Date    "             	}	,{"Indique la Fecha Final    "  		}})	
+Aadd(aHelp,{{"Selecione o Tipo do Titulo" 	}	,	{"Enter the Bill Typee    "             	}	,{"Seleccione el Tipo del Titulo" 		}})	
+Aadd(aHelp,{{"Informe o Formto do Relatorio"}	,	{"Enter the Report Format  "             	}	,{"Indique el Formato del Informe" 		}})	
+Aadd(aHelp,{	{"Selecione a Filial. En caso de no informar alguna, se traeran los datos de todas las sucursales" 	}	,;	
+				{"Selecione a Filial. En caso de no informar alguna, se traeran los datos de todas las sucursales" 	}	,;
+				{"Selecione a Filial. En caso de no informar alguna, se traeran los datos de todas las sucursales" 	}	})	
+Aadd(aHelp,{{"Deseja imprimir o Resumo"		}	,	{"Would you like to printer the Summary"   	}	,{"Desea que se imprima lo Resumen"		}})	
+Aadd(aHelp,{{"Seleccione el tipo de subdiario"}	,	{"Seleccione el tipo de subdiario"			}	,{"Seleccione el tipo de subdiario"		}})	
+Aadd(aHelp,{{"Exporta a un archivo EXCEL?"}		,	{"Exporta a un archivo EXCEL?"}					,{"Exporta a un archivo EXCEL?"			}})	
+
+PutSx1(cPerg,"01","Data Inicial ?","ฟFecha Inicial ?", "Initial Date ?","mv_ch1","D",8,0,0,"G","","","","","mv_par01","","","","",;
+       "","","","","","","","","","","","",aHelp[1,1],aHelp[1,2],aHelp[1,3])
+  
+PutSx1(cPerg,"02","Data Final  ?","ฟFecha Final ?", "Final Date  ?","mv_ch2","D",8,0,0,"G","","","","","mv_par02","","","","",;
+       "","","","","","","","","","","","S",aHelp[2,1],aHelp[2,2],aHelp[2,3])
+
+PutSx1(cPerg,"03","Incluir  ?","ฟIncluir ?", "Include ?","mv_ch3","N",1,0,1,"C","","","","","mv_par03","Ativos","Activos","Actives","",;
+       "Anulados","Anulados","Anull","Todos","Todos","All","","","","","","",aHelp[3,1],aHelp[3,2],aHelp[3,3])     
+       
+PutSx1(cPerg,"04","Estilo   ?","ฟEstilo  ?", "Style  ?","mv_ch4","N",1,0,1,"C","","","","","mv_par04","Analitico","Analitico","Detailed","",;
+       "Resumido","Resumido","Summarized","","","","","","","","","",aHelp[4,1],aHelp[4,2],aHelp[4,3])     
+
+PutSx1(cPerg,"05","Filial   ?","ฟSucursale ?", "Branch  ?","mv_ch5","C",2,0,0,"G","","SM0","","","mv_par05","","","","",;
+       "","","","","","","","","","","SM0","",aHelp[5,1],aHelp[5,2],aHelp[5,3])     
+
+PutSx1(cPerg,"06","Resumo   ?","ฟResumen ?", "Resumen ?","mv_ch6","N",1,0,1,"C","","","","","mv_par06","Imprimir","Imprimir","Printer","",;
+       "Nao Imprimir","No Imprimir","Not Printer","","","","","","","","","",aHelp[6,1],aHelp[6,2],aHelp[6,3])         
+
+PutSx1(cPerg,"07","Tipo","Tipo", "Tipo","mv_ch7","N",1,0,1,"C","","","","","mv_par07","Compras","Compras","Compras","",;
+       "Ventas","Ventas","Ventas","","","","","","","","","",aHelp[7,1],aHelp[7,2],aHelp[7,3])            
+
+PutSx1(cPerg,"08","Excel?","Excel?", "Excel?","mv_ch8","N",1,0,1,"C","","","","","mv_par08","Si","Si","Si","",;
+       "No","No","No","","","","","","","","","",aHelp[8,1],aHelp[8,2],aHelp[8,3])         
+       

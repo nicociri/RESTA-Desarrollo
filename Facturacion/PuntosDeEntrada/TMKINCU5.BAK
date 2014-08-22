@@ -1,0 +1,5 @@
+User Function TMKINCU5()
+
+alert ("La tenes INSIDE")
+
+Return

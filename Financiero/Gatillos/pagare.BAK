@@ -1,0 +1,17 @@
+User Function pagare()
+Local cNum :=""
+
+If ALLTRIM(Funname())=="FINA087A"	
+	If aCols[n, GdFieldPos("EL_TIPODOC")] =="NP"
+	    cNum:=GETSX8NUM("SEL","EL_XNUMERO")
+	    aCols[n, GdFieldPos("EL_XNUMERO")]:=cNum                                                                                                    
+	EndIf     
+EndIf
+
+If ALLTRIM(Funname())=="FINA085A"	
+	If aCols[n, GdFieldPos("EK_TIPODOC")] =="NP" 
+	    cNum:=GETSX8NUM("SEK","EK_XNUMERO")
+	    aCols[n, GdFieldPos("EK_XNUMERO")]:=cNum                                                                                                   
+	EndIf     
+EndIf	
+Return(cNum) 

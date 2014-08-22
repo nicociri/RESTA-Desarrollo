@@ -1,0 +1,276 @@
+#Include "Protheus.Ch"
+#Define ENTER Chr(13)+Chr(10)
+
+//ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+//ฑฑษอออออออออออัออออออออออหอออออออัอออออออออออออออออออหอออออออัออออออออออออปฑฑ
+//ฑฑบPrograma   ณ Z01ABM1  บ Autor ณ Cardeza Fernando  บ Fecha ณ 04/07/2013 บฑฑ
+//ฑฑฬอออออออออออุออออออออออสอออออออฯอออออออออออออออออออสอออออออฯออออออออออออนฑฑ
+//ฑฑบDescripcionณ ABM de Acopio       ("Z01")     		                    บฑฑ
+//ฑฑศอออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+//฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+
+User Function ACOPIO                                      
+
+Local aCores := { 	{"Z01_XENVIO == '1'"   , "BR_VERDE"	   },; //Empresa 01
+  					{"Z01_XENVIO == '2'"   , "BR_VERMELHO" },; //Backup
+					{"Z01_FCHVEN <  DATE()", "BR_PRETO"    }}  //Acopio Vencido
+					
+Private cCadastro := "Acopio"
+Private cString   := "Z01"                                          
+Private bCampo    := {|nField| FieldName(nField) }
+
+Private cDelFunc  := "u_Z01ABM1J()" // Validaci๓n para el borrado. Puede utilizarse ExecBlock
+
+Private aRotina   := MenuDef()
+
+dbSelectArea(cString)
+dbSetOrder(1)
+
+mBrowse( 6,1,22,75,cString,,,,,,aCores)
+Return
+
+
+//ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+//ฑฑษอออออออออออัออออออออออหอออออออัอออออออออออออออออออหอออออออัออออออออออออปฑฑ
+//ฑฑบPrograma   ณ Z01ABM1  บ Autor ณ Cardeza Fernando  บ Fecha ณ 04/07/2013 บฑฑ
+//ฑฑฬอออออออออออุออออออออออสอออออออฯอออออออออออออออออออสอออออออฯออออออออออออนฑฑ
+//ฑฑบDescripcionณ U_Z01ABM1V() Funcion de VISUALIZACION                     บฑฑ
+//ฑฑศอออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+//฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+User Function Z01ABM1V(cAlias,nRecNo,nOpcX)
+Local aButtons  := {}
+
+AxVisual(cAlias,nRecNo,nOpcX,,,,,aButtons,,)
+
+Return
+
+//ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+//ฑฑษอออออออออออัออออออออออหอออออออัอออออออออออออออออออหอออออออัออออออออออออปฑฑ
+//ฑฑบPrograma   ณ Z01ABM1  บ Autor ณ Cardeza Fernando  บ Fecha ณ 04/07/2013 บฑฑ
+//ฑฑฬอออออออออออุออออออออออสอออออออฯอออออออออออออออออออสอออออออฯออออออออออออนฑฑ
+//ฑฑบDescripcionณ U_Z01ABM1I() Funcion de INCLUSION                         บฑฑ
+//ฑฑศอออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+//฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+User Function Z01ABM1I(cAlias,nRecNo,nOpcX)
+Local aButtons		:= {}
+Local cValidac		:= "U_Z01ABM1N()" //"U_Z01VALID()"
+Local cTransac		:= NIL 
+                                  
+nOpcao := AxInclui(cAlias,nRecNo,nOpcX,,,,cValidac,,cTransac,aButtons)
+                     
+Return
+
+//ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+//ฑฑษอออออออออออัออออออออออหอออออออัอออออออออออออออออออหอออออออัออออออออออออปฑฑ
+//ฑฑบPrograma   ณ Z01ABM1  บ Autor ณ Cardeza Fernando  บ Fecha ณ 04/07/2013 บฑฑ
+//ฑฑฬอออออออออออุออออออออออสอออออออฯอออออออออออออออออออสอออออออฯออออออออออออนฑฑ
+//ฑฑบDescripcionณ U_Z01ABM1M() Funcion de MODIFICACION                      บฑฑ
+//ฑฑศอออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+//฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+
+User Function Z01ABM1M(cAlias,nRecNo,nOpcX)
+Local aButtons		:= {}
+Local cValidac		:= "u_Z01ABM1A()"
+Local cTransac		:= NIL //"u_Z01ABM1N" 
+Local aCpos  		:= {}//agregar campos que pueden ser editables 
+Local nOpcao 		:= 0 
+AADD(aCpos, "Z01_XSEG")
+AADD(aCpos, "Z01_TPSEG1")
+AADD(aCpos, "Z01_TPSEG2")
+AADD(aCpos, "Z01_POLIZA")
+AADD(aCpos, "Z01_POLIZ2")
+AADD(aCpos, "Z01_CCLIET")
+AADD(aCpos, "Z01_CCLIE2")
+AADD(aCpos, "Z01_XPORC")
+AADD(aCpos, "Z01_XPORC2")
+AADD(aCpos, "Z01_XDIRO")
+AADD(aCpos, "Z01_XOBS3")
+AADD(aCpos, "Z01_DESC1")
+AADD(aCpos, "Z01_DESC2")
+AADD(aCpos, "Z01_DESC3")
+AADD(aCpos, "Z01_DESC4")
+AADD(aCpos, "Z01_XCDTAB")
+AADD(aCpos, "Z01_XINCR")
+AADD(aCpos, "Z01_XPAUT")
+AADD(aCpos, "Z01_FCHVEN")
+
+nOpcao := AxAltera(cAlias,nRecNo,nOpcX,,aCpos,,,cValidac,cTransac,,aButtons,,,,,)
+
+                                                             
+Return
+
+//ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+//ฑฑษอออออออออออัออออออออออหอออออออัอออออออออออออออออออหอออออออัออออออออออออปฑฑ
+//ฑฑบPrograma   ณ Z01ABM1  บ Autor ณ Cardeza Fernando  บ Fecha ณ 04/07/2013 บฑฑ
+//ฑฑฬอออออออออออุออออออออออสอออออออฯอออออออออออออออออออสอออออออฯออออออออออออนฑฑ
+//ฑฑบDescripcionณ U_Z01ABM1B() Funcion de BAJA                              บฑฑ
+//ฑฑศอออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+//฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+
+User Function Z01ABM1B(cAlias,nRecNo,nOpcX)
+Local aButtons	:= {}
+Local cTransac	:= "u_Z01ABM1X"
+Local nOpcao := 0 
+
+nOpcao := AxDeleta(cAlias,nRecNo,nOpcX,cTransac,,aButtons,,) 
+
+Return
+
+//ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+//ฑฑษอออออออออออัออออออออออหอออออออัอออออออออออออออออออหอออออออัออออออออออออปฑฑ
+//ฑฑบPrograma   ณ Z01ABM1  บ Autor ณ Cardeza Fernando  บ Fecha ณ 04/07/2013 บฑฑ
+//ฑฑฬอออออออออออุออออออออออสอออออออฯอออออออออออออออออออสอออออออฯออออออออออออนฑฑ
+//ฑฑบDescripcionณ U_Z01ABM1A() VALIDACIONES en MODIFICACION 		        บฑฑ
+//ฑฑศอออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+//฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+
+User Function Z01ABM1A()
+Local lRet := .T.
+
+Return (lRet)
+
+//ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+//ฑฑษอออออออออออัออออออออออหอออออออัอออออออออออออออออออหอออออออัออออออออออออปฑฑ
+//ฑฑบPrograma   ณ Z01ABM1  บ Autor ณ Cardeza Fernando  บ Fecha ณ 04/07/2013 บฑฑ
+//ฑฑฬอออออออออออุออออออออออสอออออออฯอออออออออออออออออออสอออออออฯออออออออออออนฑฑ
+//ฑฑบDescripcionณ U_Z01ABM1N	 TRANSACCIONES en ALTA 					    บฑฑ
+//ฑฑศอออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+//฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+User Function Z01ABM1N()
+Local lRet 		:= .T.
+
+M->Z01_STATUS:="1"
+
+DbSelectArea("Z01")
+DbSetOrder(1)
+DbSeek(XFilial("Z01") + M->Z01_ACOPIO)		
+IF Found()                                        
+	Alert("No se puede cargar un Acopio existente") 
+	lRet:=.F.
+	Return (lRet)
+EndIf
+
+aAcopio:=Pendient()
+
+If  Len(aAcopio)>0
+	Alert("Este cliente ya posee un acopio pendiente") 
+	lRet:=.T.
+	Return (lRet)
+EndIf
+	
+Return (lRet)
+
+
+//ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+//ฑฑษอออออออออออัออออออออออหอออออออัอออออออออออออออออออหอออออออัออออออออออออปฑฑ
+//ฑฑบPrograma   ณ Z01ABM1  บ Autor ณ Cardeza Fernando  บ Fecha ณ 04/07/2013 บฑฑ
+//ฑฑฬอออออออออออุออออออออออสอออออออฯอออออออออออออออออออสอออออออฯออออออออออออนฑฑ
+//ฑฑบDescripcionณ U_Z01ABM1J() VALIDACION de BAJA                           บฑฑ
+//ฑฑศอออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+//฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+
+User Function Z01ABM1J()
+Local lRet  := .T.
+
+Return (lRet) 
+
+
+//ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+//ฑฑษอออออออออออัออออออออออหอออออออัอออออออออออออออออออหอออออออัออออออออออออปฑฑ
+//ฑฑบPrograma   ณ Z01ABM1  บ Autor ณ Cardeza Fernando  บ Fecha ณ 04/07/2013 บฑฑ
+//ฑฑฬอออออออออออุออออออออออสอออออออฯอออออออออออออออออออสอออออออฯออออออออออออนฑฑ
+//ฑฑบDescripcionณ U_Z01ABM1X() VALIDACION de BAJA                           บฑฑ
+//ฑฑศอออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+//฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+
+User Function Z01ABM1X()
+Local lRet  := .T.
+
+Return (lRet)                      
+
+//+------------------------------------------- 
+//|Funci๓n: BLegenda - Rutina de Leyenda 
+//+------------------------------------------- 
+User Function BLegenda() 
+Local aLegenda := {} 
+AADD(aLegenda,{"BR_VERDE"   ,"1-Acopio creado sin ser asociado a ningun documento"}) 
+AADD(aLegenda,{"BR_BRANCO"  ,"2-Acopio asociado a PV de entrega futura"})
+AADD(aLegenda,{"BR_AZUL"    ,"3-Acopio asociado a la primer Factura"})
+AADD(aLegenda,{"BR_AMARELO" ,"4-Acopio asociado al segundo pedido de venta"})
+AADD(aLegenda,{"BR_LARANJA" ,"5-Acopio asociado al remito"}) 
+AADD(aLegenda,{"BR_CINZA" 	,"6-Acopio asociado a la NCC"})
+AADD(aLegenda,{"BR_MARRON" 	,"7-Acopio asociado a segunda NCC y a nuevo pedido de venta"})
+AADD(aLegenda,{"BR_VERMELHO","8-Acopio asociado al pago (recibo) de la primer factura"})     
+BrwLegenda(cCadastro, "Leyenda", aLegenda) 
+Return Nil     
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑฺฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤฤยฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤยฤฤฤฤฤฤฤฤฤฤฟฑฑ
+ฑฑณPrograma  ณ MenuDef  ณ Autor ณ Fernando Cardeza      ณ Data ณ04/07/2013ณฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤดฑฑ
+ฑฑณDescri…o ณ Utilizacao de menu Funcional                               ณฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ
+ฑฑณRetorno   ณ Array com opcoes da rotina.                                ณฑฑ
+ฑฑรฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤดฑฑ
+ฑฑณParametrosณ Parametros do array a Rotina:                              ณฑฑ
+ฑฑณ          ณ1. Nome a aparecer no cabecalho                             ณฑฑ
+ฑฑณ          ณ2. Nome da Rotina associada                                 ณฑฑ
+ฑฑณ          ณ3. Reservado                                                ณฑฑ
+ฑฑณ          ณ4. Tipo de Transao a ser efetuada:                        ณฑฑ
+ฑฑณ          ณ	  1 - Pesquisa e Posiciona em um Banco de Dados           ณฑฑ
+ฑฑณ          ณ    2 - Simplesmente Mostra os Campos                       ณฑฑ
+ฑฑณ          ณ    3 - Inclui registros no Bancos de Dados                 ณฑฑ
+ฑฑณ          ณ    4 - Altera o registro corrente                          ณฑฑ
+ฑฑณ          ณ    5 - Remove o registro corrente do Banco de Dados        ณฑฑ
+ฑฑภฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤูฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+Static Function MenuDef()
+
+Private aRotina   := {	{"Buscar"     ,"AxPesqui"  ,0,1} ,;
+						{"Visualizar" ,"u_Z01ABM1V",0,2} ,;
+						{"Incluir"    ,"u_Z01ABM1I",0,3} ,;
+						{"Modificar"  ,"u_Z01ABM1M",0,4} ,;
+						{"Borrar"     ,"u_Z01ABM1B",0,5} ,;
+						{"Leyenda"    ,"u_BLegenda",0,6} }	
+Return aRotina                                                                
+
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณVALMONACO บAutor  ณMicrosiga           บFecha ณ  06/26/14   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ  Ejecuta store procedure de los acopios pendientes         บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ AP                                                         บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static function Pendient()
+Local cQuery	:=""    
+Local aAcopio   := {}
+Local cCliente 	:=M->Z01_CLIENT
+
+cQuery := "exec [QRY_VAL_ACOPIO_01]'"+ cCliente +"'"
+cQuery := PLSAvaSQL(cQuery)
+  If Select("TODO01") <> 0
+	DBSelectArea("TODO01")
+	TODO01->(DBCloseArea())
+  EndIf
+// Executa a Query
+PLSQuery(cQuery,"TODO01")
+// Vai para o inicio da area de trabalho
+TODO01->(DBGoTop())
+    While TODO01->(!Eof())
+   		AADD( aAcopio, {TODO01->ACOPIO,TODO01->VALOR} )
+    	DbSkip()
+	Enddo
+
+Return(aAcopio)           

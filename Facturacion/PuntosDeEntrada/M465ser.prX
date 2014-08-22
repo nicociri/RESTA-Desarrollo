@@ -1,0 +1,106 @@
+#include "rwmake.ch"        // incluido por el asistente de conversión del AP5 IDE en 26/04/00
+
+User Function M465ser()        // incluido por el asistente de conversión del AP5 IDE en 26/04/00
+
+//msgbox("ejecuta gatillo m465ser","ver","info")
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Declaración de variables utilizadas en el programa a través de la función    ³
+//³ SetPrvt, va a crear sólo las variables definidas por el usuario,    ³
+//³ identificando las variables públicas del sistema utilizadas en el código ³
+//³ Incluido por el asistente de conversión del AP5 IDE                    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+SetPrvt("_XCSERIE,")
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡…o    ³ M465Ser  ³ Autor ³ Octavio Moreira         ³ Data ³ 03/05/99 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³ Obter a Serie de NC CLIENTES basado en el tipo IVA           ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±³MODIFICA  ³ Para Series de NC Ventas en Cie - Pedro Sanchez 26/01/05     ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+_xcSerie := Space(3)
+
+IF CMODULO=='FAT' .OR. (CMODULO ='LOJ' .AND. !!isincallstack("LOJA720"))
+   If Alltrim(Funname()) == "MATA465N"
+	   If Left(cEspecie,3)=='NDC' 
+			__cTipo := Posicione( 'SA1', 1, xFilial('SA1') + M->F2_CLIENTE + M->F2_LOJA, 'A1_TIPO' )   
+			_xcSerie := U_ShowSeries(__cTipo,cEspecie)
+			cDoc := Tabela( '01', _xcSerie)
+   			M->F2_SERIE := _xcSerie
+   			LocXVal( 'F2_SERIE' )
+   			M->F2_DOC := cDoc
+   			LocXVal( 'F2_DOC' )
+   			MAFISREF("NF_SERIENF","MT100",M->F2_SERIE)
+			
+	   Else                                                           
+			__cTipo := Posicione( 'SA1', 1, xFilial('SA1') + M->F1_FORNECE + M->F1_LOJA, 'A1_TIPO' )
+			_xcSerie := U_ShowSeries(__cTipo,cEspecie)
+			cDoc := Tabela( '01', _xcSerie)
+   			M->F1_SERIE := _xcSerie
+   			LocXVal( 'F1_SERIE' )
+   			M->F1_DOC := cDoc
+   			LocXVal( 'F1_DOC' )
+   			MAFISREF("NF_SERIENF","MT100",M->F1_SERIE)
+						
+	   EndIf	
+   EndIf
+EndIf
+If cModulo ='LOJ' .AND. IsIncallStack("LOJA720") .and. lFiscal
+			__cTipo := Posicione( 'SA1', 1, xFilial('SA1') + M->F1_FORNECE + M->F1_LOJA, 'A1_TIPO' )
+			
+			If __cTipo $ 'E'
+					_xcSerie := "EZ"
+			ElseIf __cTipo $ "I-N"    
+					_xcSerie := "AZ"
+			Else
+					_xcSerie := "BZ"
+			EndIf
+
+EndIf
+
+If cModulo == 'COM'
+	If Alltrim(Funname()) == "MATA466N"
+		If Left( cEspecie,3)=='NCP'.OR. Left(cEspecie,3)=='NCI'
+			__cTipo:=Posicione( 'SA2', 1, xFilial('SA2') + M->F2_CLIENTE, 'A2_TIPO' )   
+			If __cTipo $ 'E'
+				_xcSerie := "E  "
+			ElseIf __cTipo $ "I"    
+				_xcSerie := "A  "
+			ElseIf __cTipo $ "N;M;X;"
+				_xcSerie := "C  "
+			elseIF __cTipo $ "S" 
+				_xcSerie := "X  "
+			EndIf
+		ElseIf Left( cEspecie,3)=='NDP'                                                             
+			__cTipo:=Posicione( 'SA2', 1, xFilial('SA2') + M->F1_FORNECE, 'A2_TIPO' )
+			If __cTipo $ 'E'
+				_xcSerie := "E  "
+			ElseIf __cTipo $ "I"    
+				_xcSerie := "A  "
+			ElseIf __cTipo $ "N;M;X;"
+				_xcSerie := "C  "
+			elseIF __cTipo $ "S" 
+				_xcSerie := "X  "
+			EndIf
+		ElseIf left(cEspecie,3)=='NDI'
+			__cTipo := Posicione( 'SA2', 1, xFilial('SA2') + M->F2_CLIENTE + M->F2_LOJA, 'A2_TIPO' )   
+			_xcSerie := U_ShowSeries(__cTipo,"NDC  ")
+			cDoc := Tabela( '01', _xcSerie)
+   			M->F2_SERIE := _xcSerie
+   			LocXVal( 'F2_SERIE' )
+   			M->F2_DOC := cDoc
+   			LocXVal( 'F2_DOC' )
+   			MAFISREF("NF_SERIENF","MT100",M->F2_SERIE)
+		EndIf
+	EndIf
+EndIf	       
+
+Return( _xcSerie )

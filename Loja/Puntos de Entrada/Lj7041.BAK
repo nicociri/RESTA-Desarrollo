@@ -1,0 +1,43 @@
+
+#Include 'protheus.ch'
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณLJ7041    บAutor  ณNicolas Cirigliano  บFecha ณ  04/02/14   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Punto de Entrada para la asignacion de deposito en la      บฑฑ
+ฑฑบ          ณ venta asistida                                             บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ AP                                                        บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+
+User Function LJ7041()
+Local _cLocal   :=   ParamIxb [1]   // Recebe parโmetro contendo almoxarifado
+Local _aColsDet :=  ParamIxb[2]     // Recebe parโmetro contendo o array aColsDet
+
+
+_cLocal := '82'
+
+
+Return _cLocal
+
+
+//Gatillo para asistencia al cambio de deposito
+//Segun el TDN, el punto de entrada LJ7041 requiere tambien usar un gatillo desde LR_PRODUTO
+//el de abajo, es una copia modificada del ejemplo del TDN
+
+User Function LJ7041B()
+
+Local _nPosLocal := aScan( aHeaderDet, { |x| Trim(x[2]) == 'LR_LOCAL' })
+Local _nPosProd	 := aScan( aHeaderDet, { |x| Trim(x[2]) == 'LR_PRODUTO' })
+
+_cLocal := POSICIONE("SBZ",1,xfilial("SBZ")+aColsDet[n][_nPosProd], "BZ_LOCPAD")
+
+aColsDet[n][_nPosLocal] := _cLocal
+
+Return (_cLocal)

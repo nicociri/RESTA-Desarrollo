@@ -1,0 +1,736 @@
+Group RESTA
+   Version=7.0
+   VSSDB=
+   HasProperties=1
+   Properties
+      BeforeApply=
+      AfterApply=
+      Icon=
+      ID=
+      Version=
+      PalmName=
+      OutPut=
+   End
+   ProjectsCount=9
+   Project Contabilidad
+      FoldersCount=1
+      Folder Fuentes
+         VSSPath=Definições
+         FilesCount=8
+         File \MP11\Proyecto Resta\Contabilidad\Fuentes\ARFCTB09.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Contabilidad\Fuentes\AXCAUXCTB.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Contabilidad\Fuentes\CONVVALOR.PRW
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Contabilidad\Fuentes\CTBNFDIF.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Contabilidad\Fuentes\CTBOPDIF.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Contabilidad\Fuentes\SUMAIMP.PRW
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Contabilidad\Fuentes\XVALOR.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Contabilidad\Fuentes\AlCtb010.prw
+             Type=T
+         End
+      End
+   End
+   Project Generales
+      FoldersCount=5
+      Folder Fuentes
+         VSSPath=Nueva Carpeta1
+         FilesCount=2
+         File \MP11\Proyecto Resta\Generales\Fuentes\BORRA_MIG.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Fuentes\BORRA_MIG_ANT.PRW
+             Type=T
+         End
+      End
+      Folder LOCXPE
+         VSSPath=Nueva Carpeta2
+         FilesCount=10
+         File \MP11\Proyecto Resta\Generales\LOCXPE\locxpe35.PRW
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Generales\LOCXPE\locxpe33.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Generales\LOCXPE\LocxPe16.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Generales\LOCXPE\LocxPe27.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\LOCXPE\LocxPe14.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\LOCXPE\locxpe37.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\LOCXPE\LOCXPE11.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\LOCXPE\LocxPe65.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\LOCXPE\LXDORIG.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\LOCXPE\LOCXPE08.prw
+             Type=T
+         End
+      End
+      Folder Rutinas
+         VSSPath=Nueva Carpeta3
+         FilesCount=30
+         File \MP11\Proyecto Resta\Generales\Rutinas\NomeSF1.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Generales\Rutinas\NomeSF2.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Generales\Rutinas\AllaZeros.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Generales\Rutinas\LZBZEROS.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Generales\Rutinas\NUMTOSTR.PRW
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Generales\Rutinas\VALCUIT.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Generales\Rutinas\XVALOR.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Generales\Rutinas\COMPDIC.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Generales\Rutinas\ACOPIO.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\MT010CAN.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\ARBAIIBB.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\MODSA1.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\M030INC.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\M020INC.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\ACOPIO.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\A087TUDOK.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\compsx.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\Valdoc.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\COMPDIC.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\ShowSeries.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\CUMPLE.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\USRVSVEN.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\MA030TOK.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\XLSPrecio.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\SELFILEXLS.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\CargaXLS.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\ImpSF1.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\ImpSA1.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\ImpSE2.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\ImpSE1.PRW
+             Type=T
+         End
+      End
+      Folder Informes
+         VSSPath=Nueva Carpeta4
+         FilesCount=1
+         File \mp11\Proyecto Resta\Generales\Informes\Z03ABMI.prw
+             Type=T
+         End
+      End
+      Folder Validaciones
+         VSSPath=Nueva Carpeta5
+         FilesCount=1
+         File \mp11\Proyecto Resta\Generales\Validaciones\UTabela.prw
+             Type=T
+         End
+      End
+   End
+   Project Compras
+      FoldersCount=3
+      Folder PuntoDeEntrada
+         VSSPath=Nueva Carpeta1
+         FilesCount=4
+         File \MP11\Proyecto Resta\Compras\PuntosDeEntrada\MT103IPC.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Compras\PuntosDeEntrada\MT120VSC.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Compras\PuntosDeEntrada\MT120LOK.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Compras\PuntosDeEntrada\MT120Ok.prw
+             Type=T
+         End
+      End
+      Folder Layout
+         VSSPath=Nueva Carpeta2
+         FilesCount=2
+         File \MP11\Proyecto Resta\Compras\Layout\ARCOM004.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Compras\Layout\ARCOM005.prw
+             Type=T
+         End
+      End
+      Folder Rutinas
+         VSSPath=Nueva Carpeta3
+         FilesCount=5
+         File \mp11\Proyecto Resta\Compras\Rutina\AIB_PREC.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Compras\Rutina\ComRej.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\SELFILEXLS.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\XLSPrecio.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\XVALOR.prw
+             Type=T
+         End
+      End
+   End
+   Project Facturacion
+      FoldersCount=7
+      Folder PuntoDeEntrada
+         VSSPath=Nueva Carpeta1
+         FilesCount=26
+         File \MP11\Proyecto Resta\Facturacion\PuntosDeEntrada\MTA416PV.PRW
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\PuntosDeEntrada\M462SER.PRW
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\PuntosDeEntrada\M465ser.prX
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\PuntosDeEntrada\M467ser.prX
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\PuntosDeEntrada\m468Aser.prx
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\PuntosDeEntrada\M462GRV.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\PuntosDeEntrada\M460FIM.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\PuntosDeEntrada\M440STTS.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\PuntosDeEntrada\A410Cons.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\PuntosDeEntrada\M410fldr.PRW
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\PuntosDeEntrada\MA415BUT.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\PuntosDeEntrada\A468RMFUT.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\PuntosDeEntrada\Mt410TOk.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\PuntosDeEntrada\Mta410I.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\PuntosDeEntrada\SF2460I.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\PuntosDeEntrada\M468PENT.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\PuntosDeEntrada\TMKINCU5.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\PuntosDeEntrada\TMKALTU5.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\PuntosDeEntrada\OM010LOK.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\PuntosDeEntrada\OM010FIL.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\PuntosDeEntrada\MTASF2.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\PuntosDeEntrada\M462FIM.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\PuntosDeEntrada\M410LIOK.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\PuntosDeEntrada\Ma410Mnu.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\PuntosDeEntrada\MT462MNU.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\PuntosDeEntrada\M468SD2.prw
+             Type=T
+         End
+      End
+      Folder Rutinas
+         VSSPath=Nueva Carpeta2
+         FilesCount=8
+         File \MP11\Proyecto Resta\Facturacion\Rutinas\SHOWSERIE.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\Rutinas\Traeprod.PRW
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\Rutinas\createArchPed.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Rutinas\VENREJ.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\CargaXLS.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\XLSPrecio.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Generales\Rutinas\SELFILEXLS.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Rutinas\Traeppre.PRW
+             Type=T
+         End
+      End
+      Folder Layout
+         VSSPath=Nueva Carpeta3
+         FilesCount=8
+         File \MP11\Proyecto Resta\Facturacion\Layout\ECFackl.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\Layout\ECRemkl.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\Layout\PVENTA.PRW
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Facturacion\Layout\PRESUP.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Layout\KFatr01.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Layout\KRem01.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Layout\KFac01.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Layout\PRESUPCONIMP.PRW
+             Type=T
+         End
+      End
+      Folder Validaciones
+         VSSPath=Nueva Carpeta4
+         FilesCount=2
+         File \mp11\Proyecto Resta\Facturacion\Validaciones\ACOCLIEN.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Validaciones\ENCFACT.PRW
+             Type=T
+         End
+      End
+      Folder Informes
+         VSSPath=Nueva Carpeta5
+         FilesCount=7
+         File \mp11\Proyecto Resta\Facturacion\Informes\ACO001.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Informes\ACO002.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Informes\ACO003.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Compras\Layout\RESTAZ1.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Informes\ACO004.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Informes\ACO005.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Informes\INFSCJ.prw
+             Type=T
+         End
+      End
+      Folder Facturacion Electronica
+         VSSPath=Nueva Carpeta6
+         FilesCount=4
+         File \mp11\Proyecto Resta\Facturacion\FE\NFECFGLOC.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\FE\WSFEV1.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\FE\NFESLOC.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\FE\NFAEXml001.prw
+             Type=T
+         End
+      End
+      Folder Gatillos
+         VSSPath=Nueva Carpeta7
+         FilesCount=8
+         File \mp11\Proyecto Resta\Facturacion\Gatillos\TraePpre.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Gatillos\PV_Entreg.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Gatillos\PV_EF.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Gatillos\acopen.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Gatillos\acopenF1.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Gatillos\PROVENT.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Gatillos\ulista.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Facturacion\Gatillos\ValMonAco.prw
+             Type=T
+         End
+      End
+   End
+   Project Financiero
+      FoldersCount=5
+      Folder PuntoDeEntrada
+         VSSPath=Nueva Carpeta1
+         FilesCount=13
+         File \MP11\Proyecto Resta\Financiero\PuntosDeEntrada\A085AFM2.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Financiero\PuntosDeEntrada\F087AF3.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Financiero\PuntosDeEntrada\A087NATVAZ.PRW
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Financiero\PuntosDeEntrada\F085VLNAT.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Financiero\PuntosDeEntrada\FA087GRV.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Financiero\PuntosDeEntrada\A85CHPDT.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Financiero\PuntosDeEntrada\Fa088Can.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Financiero\PuntosDeEntrada\PAGO085P.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Financiero\PuntosDeEntrada\FA087SEL.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Financiero\PuntosDeEntrada\TelaCon.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Financiero\PuntosDeEntrada\FI85ATCH.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Financiero\PuntosDeEntrada\FA330SE1.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Financiero\PuntosDeEntrada\FA330EXC.prw
+             Type=T
+         End
+      End
+      Folder Layout
+         VSSPath=Nueva Carpeta2
+         FilesCount=5
+         File \MP11\Proyecto Resta\Financiero\Layout\PCRFIN02.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Financiero\Layout\PCRFIN03.PRW
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Financiero\Layout\ReciboNEW.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Financiero\Layout\Cier945.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Financiero\Layout\MOVBANC.PRW
+             Type=T
+         End
+      End
+      Folder Informes
+         VSSPath=Nueva Carpeta3
+         FilesCount=5
+         File \mp11\Proyecto Resta\Financiero\Informes\DIARCOBR.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Financiero\Informes\DIARPAG.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Financiero\Informes\ECRes001.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Financiero\Informes\DIARPAG1.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Financiero\Informes\DETPAGO.prw
+             Type=T
+         End
+      End
+      Folder Rutinas
+         VSSPath=Nueva Carpeta4
+         FilesCount=1
+         File \mp11\Proyecto Resta\Financiero\Rutinas\ARFIN003.PRW
+             Type=T
+         End
+      End
+      Folder Gatillos
+         VSSPath=Nueva Carpeta5
+         FilesCount=1
+         File \mp11\Proyecto Resta\Financiero\Gatillos\pagare.prw
+             Type=T
+         End
+      End
+   End
+   Project Loja
+      FoldersCount=3
+      Folder Puntos de Entrada
+         VSSPath=Nueva Carpeta1
+         FilesCount=9
+         File \MP11\Proyecto Resta\Loja\Puntos de Entrada\LJ720PRXNUM.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Loja\Puntos de Entrada\lj720fim.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Loja\Puntos de Entrada\LBRA075.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Loja\Puntos de Entrada\LJ7004.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Loja\Puntos de Entrada\LJ7050.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Loja\Puntos de Entrada\LJ7023.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Loja\Puntos de Entrada\LJ7020.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Loja\Puntos de Entrada\Lj7041.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Loja\Puntos de Entrada\Lj7002.prw
+             Type=T
+         End
+      End
+      Folder Rutinas
+         VSSPath=Nueva Carpeta2
+         FilesCount=2
+         File \MP11\Proyecto Resta\Loja\Rutinas\lojaman.prw
+             Type=T
+         End
+         File \MP11\Proyecto Resta\Loja\Rutinas\HsrStat.prw
+             Type=T
+         End
+      End
+      Folder Layout
+         VSSPath=Nueva Carpeta3
+         FilesCount=1
+         File \mp11\Proyecto Resta\Loja\Layout\LJPRESUP.prw
+             Type=T
+         End
+      End
+   End
+   Project Importadores
+      FoldersCount=1
+      Folder Rutinas
+         VSSPath=Nueva Carpeta1
+         FilesCount=24
+         File \mp11\Proyecto Resta\Importadores\impAux.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpSA1.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpSA2.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpSB1.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\IMPSB9.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpSD3.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpSE1.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpSE2.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpSF1.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpSG1.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\impSG2.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpSG5.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\impSH1.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpZM1.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpZM2.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpZM4.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpZM5.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpZM6.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpZM7.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpZM8.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpZM9.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpZMA.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\ImpZMB.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Importadores\RutAuto.PRW
+             Type=T
+         End
+      End
+   End
+   Project Fiscales
+      FoldersCount=2
+      Folder Rutinas
+         VSSPath=Nueva Carpeta1
+         FilesCount=4
+         File \mp11\Proyecto Resta\Fiscales\Rutinas\arg_carf_ultima.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Fiscales\Rutinas\PROCESAIIBB.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Fiscales\Rutinas\ARFISP03.prw
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Fiscales\Rutinas\ARWISP04.prw
+             Type=T
+         End
+      End
+      Folder Informes
+         VSSPath=Nueva Carpeta2
+         FilesCount=1
+         File \mp11\Proyecto Resta\Fiscales\Informes\SDIARIO.PRX
+             Type=T
+         End
+      End
+   End
+   Project Stock
+      FoldersCount=1
+      Folder Puntos de entrada
+         VSSPath=Nueva Carpeta1
+         FilesCount=2
+         File \mp11\Proyecto Resta\Stock\PuntosDeEntrada\mt241grv.PRW
+             Type=T
+         End
+         File \mp11\Proyecto Resta\Stock\PuntosDeEntrada\MA261D3.prw
+             Type=T
+         End
+      End
+   End
+End

@@ -1,0 +1,94 @@
+#INCLUDE "PROTHEUS.CH"
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%//
+//Programa: LOCXPE35      ||Data: 06/09/2010 ||Empresa: SACEEM        //
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%//
+//Autor: Marcus Pacheco   ||Empresa: TOTVS   ||Módulo: Compras        //
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%//
+//Descrição: P.E. informar usuario sobre solicitud de nota de credito //
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%//
+User Function LOCXPE35() 
+Local aArea     := GetArea()
+Local	_nPosRem 	:= AScan(aHeader,{|x|Alltrim(x[2])=="D1_REMITO"})
+Local	_nPosItRem 	:= AScan(aHeader,{|x|Alltrim(x[2])=="D1_ITEMREM"})
+Local	_nPosSeRem 	:= AScan(aHeader,{|x|Alltrim(x[2])=="D1_SERIREM"})  
+Local	_nPDescri 	:= AScan(aHeader,{|x|Alltrim(x[2])=="D1_XDESCOD"})
+Local	_nPProduc 	:= AScan(aHeader,{|x|Alltrim(x[2])=="D1_COD"})
+Local 	calias		:= "QryWrk"
+Local 	nValDesc	:= 0
+Local  	nDescTot	:= 0
+Local  	nDescTot2	:= 0
+
+If funname()='MATA101N'  // si es Factura de compras
+ 	If SF1->( dbSeek(xFilial("SF1")+SD1->D1_DOC+SD1->D1_SERIE) )
+       M->F1_NATUREZ := SF1->F1_NATUREZ     
+    ENDIF
+	acols[len(acols)][_nPDescri] := SD1->D1_XDESCOD
+	acols[LEN(ACOLS)][GDFieldPos("D1_PEDIDO")]:= Criavar("D1_PEDIDO")
+	acols[LEN(ACOLS)][GDFieldPos("D1_ITEMPC")]:= Criavar("D1_ITEMPC")	
+	
+ElseIf Funname()== "MATA465N"   
+		Pendient()                  //Modificacion de fernando Cardeza para agregar el incremento en las devoluciones llamando al remito orginal
+		MaFisReprocess(2)
+EndIf
+
+RestArea(aArea)       
+Return    
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³VALMONACO ºAutor  ³Fernando Cardeza    ºFecha ³  06/26/14   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³                                                            º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ AP                                                        º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+Static function Pendient()
+Local aAcopio   := {}
+Local cQuery    := ""	//Para ejecución de Query       
+Local dDias		:= (DATE()-GetMV( "MV_XDIANC" ))
+Local nPrecio	:=0
+Local nIncr		:=((M->F1_XPORC/100)+1)
+
+If nIncr==0
+	nIncr:=1
+Endif
+
+nX :=Len( aCols ) 
+      	
+      	cCod:=aCols[nX,AScan( aHeader, { |x| AllTrim( x[2] ) == "D1_COD" } )]
+		cQuery := "SELECT MAX(D2_PRCVEN) PRECIO FROM " + RetSqlName("SD2") + " "
+		cQuery += "WHERE D_E_L_E_T_='' AND D2_COD= '" + ALLTRIM(cCod) 
+		cQuery += "' and D2_EMISSAO>CONVERT(VARCHAR(20),'"+dtoc(dDias)+"',112) and D2_CLIENTE='"+ALLTRIM(M->F1_FORNECE)+"' and D2_LOJA='" +ALLTRIM(M->F1_LOJA)+"' "		
+		cQuery := PLSAvaSQL(cQuery)
+  		If Select("TODO01") <> 0
+			DBSelectArea("TODO01")
+			TODO01->(DBCloseArea())
+  		EndIf
+		PLSQuery(cQuery,"TODO01")
+		TODO01->(DBGoTop())
+		If !Empty (TODO01->PRECIO)
+			nPrecio:= TODO01->PRECIO
+		EndIf
+        If nPrecio>0
+         	aCols[nX,AScan( aHeader, { |x| AllTrim( x[2] ) == "D1_VUNIT" } )]:=nPrecio * nIncr
+         	If ExistTrigger("D1_VUNIT")
+			RunTrigger(2,nX,"D1_VUNIT")
+			EndIf
+        Else  
+        	DA1->(DbSetOrder(1))
+   			If DA1->(dbseek(xFilial("DA1")+"001"+cCod)) 
+         		aCols[nX,AScan( aHeader, { |x| AllTrim( x[2] ) == "D1_VUNIT" } )]:=DA1->DA1_PRCVEN * nIncr
+         		If ExistTrigger("D1_VUNIT")
+				RunTrigger(2,nX,"D1_VUNIT")
+				EndIf
+        	EndIf
+      	EndIf
+Return

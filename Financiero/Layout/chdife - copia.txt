@@ -1,0 +1,23 @@
+
+
+
+                                                                           [Chr(27)+Chr(15)+Chr(27)+Chr(48)+PADC(AllTrim( transform(TRB->VALOR,"@E 999,999,999.99") ),16,"*")]
+
+
+                              [TRB->DIAEMI + Space(8) + TRB->MESEMI + Space(14) + TRB->ANOEMI]
+
+     [TRB->DIAVTO + Space(6) + TRB->MESVTO + Space(8) + TRB->ANOVTO + Space(15) + TRB->ORDEN]
+
+                 [PADR(TRB->IMPORT1,70,"-")]
+                 [PADR(TRB->IMPORT2,70,"-")]
+
+
+
+
+
+
+
+
+
+
+

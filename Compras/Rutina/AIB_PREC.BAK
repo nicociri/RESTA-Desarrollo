@@ -1,0 +1,33 @@
+#include 'protheus.ch'
+#include 'colors.ch'
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณAIB_PREC  บAutor  ณ Nicolas Cirigliano บFecha ณ  10/12/13   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ gatillo para calcular el precio unitario en base a los     บฑฑ
+ฑฑบ          ณ descuentos y el precio base en la tabla AIB                บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ AP                                                        บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+User Function AIB_PREC()
+
+Local nPrecio
+local nPosBase := GDFieldPos("AIB_PRBASE")
+local nPosDes1 := GDFieldPos("AIB_DESC1")
+local nPosDes2 := GDFieldPos("AIB_DESC2")
+local nPosDes3 := GDFieldPos("AIB_DESC3")
+local nPosDes4 := GDFieldPos("AIB_DESC4")
+local nPosDes5 := GDFieldPos("AIB_DESC5")
+local nPosDes6 := GDFieldPos("AIB_DESC6")
+
+nprecio := round(((((((acols[n][nPosBase]*(100-acols[n][nPosDes1])/100)*(100-acols[n][nPosDes2])/100)*(100-acols[n][nPosDes3])/100)*(100-acols[n][nPosDes4])/100)*(100-acols[n][nPosDes5])/100)*(100-acols[n][nPosDes6])/100),2)
+
+//oDlg:oGetD:oBrowse:SetBlkBackColor({|| Str(CLR_RED)})
+
+return (nPrecio)

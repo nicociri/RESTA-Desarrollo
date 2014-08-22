@@ -1,0 +1,1228 @@
+#include "Protheus.ch"
+#Include "RWMAKE.CH"
+#DEFINE MAXGETDAD 99999
+#DEFINE MAXSAVERESULT 99999
+
+Static aUltResult
+Static lCenVenda := SuperGetMv("MV_LJCNVDA",,.F.)
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄ¿±±
+±±³Funcao    ³Ven010Rej  ³ Autor ³Eduardo Riera          ³ Data ³03.05.02 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³Reajuste das tabelas de precos                              ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Retorno   ³ Nenhum                                                     ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³ExpC1: Alias do Arquivo                                     ³±±
+±±³          ³ExpN2: Numero do Registro                                   ³±±
+±±³          ³ExpN3: Opcao do aRotina                                     ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³   DATA   ³ Programador   ³Manutencao Efetuada                         ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³          ³               ³                                            ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+User Function VenRej(cAlias,nReg,nOpc)
+
+Local aArea := GetArea()
+Local nOpcA := 0
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Define variaveis de parametrizacao de lancamentos    ³
+//³                                                      ³
+//³ MV_PAR01 Produto inicial?                            ³
+//³ MV_PAR02 Produto final  ?                            ³
+//³ MV_PAR03 Grupo inicial  ?                            ³
+//³ MV_PAR04 Grupo final    ?                            ³
+//³ MV_PAR05 Tipo inicial   ?                            ³
+//³ MV_PAR06 Tipo final     ?                            ³
+//³ MV_PAR07 Tabela inicial ?                            ³
+//³ MV_PAR08 Tabela final   ?                            ³
+//³ MV_PAR09 Fator          ?                            ³
+//³ MV_PAR10 Numero decimais?                            ³
+//³ MV_PAR11 Pedido em Carteira? Sim/Nao                 ³
+//³ MV_PAR12 Reaplicar fator?                            ³
+//³ MV_PAR13 Planilha                                    ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+SetKey(VK_F12,{|| Nil })
+
+Pergunte("VENREJ",.F.)
+FormBatch(OemToAnsi("Reajuste de lista de precios"),{OemToAnsi("Esta rutina efectuara el reajuste de las listas de precios conforme a los parametros"),OemToAnsi("solicitados")},;
+				{{5,.T.,{|o| Pergunte("VENREJ",.T.) }},;
+				{1,.T.,{|o| nOpcA:=1,o:oWnd:End()}  },;
+				{2,.T.,{|o| o:oWnd:End() }}})
+If ( nOpcA == 1 )
+	Processa({|| VenProc()})
+EndIf                   
+
+SetKey(VK_F12,{|| Pergunte("VENREJ",.T.)})
+
+RestArea(aArea)
+Return(.F.)
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄ¿±±
+±±³Funcao    ³Ven010Proc ³ Autor ³Eduardo Riera          ³ Data ³03.05.02 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³Processamento da tabela de preco                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Retorno   ³ Nenhum                                                     ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³Nenhum                                                      ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³   DATA   ³ Programador   ³Manutencao Efetuada                         ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³          ³               ³                                            ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+Static Function VenProc()
+
+Local aArea     := GetArea()
+Local aParam    := {}
+Local aAtuPrV   := {}
+
+Local cQuery    := ""
+Local cArqInd   := ""
+Local cAliasSC9:=  "SC9"
+Local cCursor   := "DA1"
+Local cCursorSC6:= "SC6"
+Local cCursorSCK:= "SCK"
+Local cUltProc  := ""
+
+Local lQuery    := .F.
+Local lContinua := .F.
+Local lAtualiza := .F.
+Local lReajSC9  := GetNewPar("MV_REAJSC9",.F.)
+Local nIndex    := 0
+Local nLoop     := 0
+Local nPPrUnit  := 0
+Local nPPrcVen  := 0
+Local nPValDesc := 0
+Local nPDesc    := 0
+Local nPValor   := 0
+Local nQtdLib   := 0
+Local nX        := 0
+
+Local cPrdRefde := ""
+Local cPrdRefAte:= ""
+PRIVATE aHeader := {}
+PRIVATE aCols   := {}
+PRIVATE N       := 1
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Define variaveis de parametrizacao de lancamentos    ³
+//³                                                      ³
+//³ MV_PAR01 Produto inicial?                            ³
+//³ MV_PAR02 Produto final  ?                            ³
+//³ MV_PAR03 Grupo inicial  ?                            ³
+//³ MV_PAR04 Grupo final    ?                            ³
+//³ MV_PAR05 Tipo inicial   ?                            ³
+//³ MV_PAR06 Tipo final     ?                            ³
+//³ MV_PAR07 Tabela inicial ?                            ³
+//³ MV_PAR08 Tabela final   ?                            ³
+//³ MV_PAR09 Fator          ?                            ³
+//³ MV_PAR10 Numero decimais?                            ³
+//³ MV_PAR11 Pedido em Carteira? Sim/Nao                 ³
+//³ MV_PAR12 Reaplicar fator?                            ³
+//³ MV_PAR13 Planilha       ?                            ³
+//³ MV_PAR14 Atualiza Preco Venda Produto ? Nao/Sim      ³
+//³ MV_PAR15 Desde Proveedor						     ³
+//³ MV_PAR16 Hasta Proveedor						     ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Salva parametros da rotina                            ³ 
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+aParam := {}
+For nLoop := 1 To 20 
+	AAdd( aParam, &( "MV_PAR" + StrZero( nLoop, 2 ) ) )
+Next nLoop
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Processa a atualizacao da tabela de preco             ³ 
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+dbSelectArea("DA1")
+dbSetOrder(1)
+#IFDEF TOP
+	If TcSrvType()<>"AS/400"
+		cCursor:= "VenRej"
+		lQuery := .T.
+		cQuery := "SELECT DA1.* "
+		cQuery += "FROM "+RetSqlName("DA1")+" DA1 "
+		cQuery += "WHERE DA1.DA1_FILIAL='"+xFilial("DA1")+"' "
+		cQuery += "AND ((DA1.DA1_CODPRO >= '"+MV_PAR01+"' "
+		cQuery += "AND DA1.DA1_CODPRO <= '"+MV_PAR02+"' "
+		cQuery += "AND DA1.DA1_GRUPO = '"+Space(Len(DA1->DA1_GRUPO))+"') "
+		cQuery += "OR (DA1.DA1_CODPRO = '"+Space(Len(DA1->DA1_CODPRO))+"' "
+		cQuery += "AND DA1.DA1_GRUPO >= '"+MV_PAR03+"' "
+		cQuery += "AND DA1.DA1_GRUPO <= '"+MV_PAR04+"') "
+		If MaGrade()
+			cQuery += "OR (DA1.DA1_CODPRO = '"+Space(Len(DA1->DA1_CODPRO))+"' "
+			cQuery += "AND DA1.DA1_GRUPO = '" +Space(Len(DA1->DA1_GRUPO))+"' "
+			cQuery += "AND DA1.DA1_REFGRD >= '"+cPrdRefDe+"' "
+			cQuery += "AND DA1.DA1_REFGRD <= '"+cPrdRefAte+"') "
+		Endif 
+		cQuery += " ) "
+		cQuery += "AND DA1.DA1_CODTAB >= '"+MV_PAR07+"'  "
+		cQuery += "AND DA1.DA1_CODTAB <= '"+MV_PAR08+"'  "
+		cQuery += "AND DA1.D_E_L_E_T_=' ' "
+		cQuery += "ORDER BY "+SqlOrder(DA1->(IndexKey()))
+		
+		cQuery := ChangeQuery(cQuery)
+		
+		dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cCursor,.T.,.T.)		
+	Else
+#ENDIF
+		cArqInd := CriaTrab(,.F.)
+		
+		cQuery := "DA1_FILIAL=='"+xFilial("DA1")+"' "
+		cQuery += ".AND. ((DA1_CODPRO>='"+MV_PAR01+"' "
+		cQuery += ".AND. DA1_CODPRO<='"+MV_PAR02+"'  "
+		cQuery += ".AND. DA1_GRUPO=='"+Space(Len(DA1->DA1_GRUPO))+"')  "
+		cQuery += ".OR. (DA1_CODPRO=='"+Space(Len(DA1->DA1_CODPRO))+"'  "
+		cQuery += ".AND. DA1_GRUPO>='"+MV_PAR03+"' "
+		cQuery += ".AND. DA1_GRUPO<='"+MV_PAR04+"') " 
+		cQuery += " ) "
+		cQuery += ".AND. DA1_CODTAB>='"+MV_PAR07+"' "
+		cQuery += ".AND. DA1_CODTAB<='"+MV_PAR08+"'"
+		
+		IndRegua("DA1",cArqInd,IndexKey(),,cQuery)	
+		nIndex := RetIndex("DA1")		
+		#IFNDEF TOP		
+			dbSetIndex(cArqInd+OrdBagExt())
+		#ENDIF
+		dbSetOrder(nIndex+1)
+		dbGotop()
+#IFDEF TOP
+	EndIf
+#ENDIF
+ProcRegua(DA1->(LastRec()))
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Define variaveis de parametrizacao de lancamentos    ³
+//³                                                      ³
+//³ MV_PAR01 Produto inicial?                            ³
+//³ MV_PAR02 Produto final  ?                            ³
+//³ MV_PAR03 Grupo inicial  ?                            ³
+//³ MV_PAR04 Grupo final    ?                            ³
+//³ MV_PAR05 Tipo inicial   ?                            ³
+//³ MV_PAR06 Tipo final     ?                            ³
+//³ MV_PAR07 Tabela inicial ?                            ³
+//³ MV_PAR08 Tabela final   ?                            ³
+//³ MV_PAR09 Fator          ?                            ³
+//³ MV_PAR10 Numero decimais?                            ³
+//³ MV_PAR11 Pedido em Carteira? Sim/Nao                 ³
+//³ MV_PAR12 Reaplicar fator?                            ³
+//³ MV_PAR13 Planilha       ?                            ³
+//³ MV_PAR14 Atualiza Preco Venda Produto ? Nao/Sim      ³
+//³ MV_PAR15 Tipo de clasificacion					     ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Salva parametros da rotina                            ³ 
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+aParam := {}
+For nLoop := 1 To 20 
+	AAdd( aParam, &( "MV_PAR" + StrZero( nLoop, 2 ) ) )
+Next nLoop
+
+dbSelectArea(cCursor)
+While ( !Eof() )
+	lContinua := .F.
+	If !Empty((cCursor)->DA1_CODPRO)
+		If 	(cCursor)->DA1_CODPRO >= aParam[1] .And.;
+			(cCursor)->DA1_CODPRO <= aParam[2] .And.;
+			(cCursor)->DA1_CODTAB >= aParam[7] .And.;
+			(cCursor)->DA1_CODTAB <= aPAram[8]
+
+			dbSelectArea("SB1")
+			dbSetOrder(1)
+			If MsSeek(xFilial("SB1")+(cCursor)->DA1_CODPRO)
+			If aParam[17]==1
+				
+				If 	SB1->B1_GRUPO >= aParam[3] .And. SB1->B1_GRUPO <= aParam[4] .And. SB1->B1_TIPO >= aParam[5] .And. SB1->B1_TIPO <= aParam[6] .And. (SB1->B1_XCLAS == "A" .OR. 	Empty(SB1->B1_XCLAS))
+				 	 
+				 		lContinua := .T.      
+				 		
+				EndIf
+			EndIf
+			If aParam[17]==2
+				If 	SB1->B1_GRUPO >= aParam[3] .And. SB1->B1_GRUPO <= aParam[4] .And. SB1->B1_TIPO >= aParam[5] .And. SB1->B1_TIPO <= aParam[6] .And. SB1->B1_XCLAS == "B"
+				    //If 	SB1->B1_GRUPO >= aParam[3] .And. SB1->B1_GRUPO <= aParam[4] .And. SB1->B1_TIPO >= aParam[5]  .And. SB1->B1_TIPO >= aParam[6].And. SB1->B1_XCLAS == "B"
+					lContinua := .T.
+				EndIf
+			EndIf   
+			If aParam[17]==3
+				If 	SB1->B1_GRUPO >= aParam[3] .And. SB1->B1_GRUPO <= aParam[4] .And. SB1->B1_TIPO >= aParam[5] .And. SB1->B1_TIPO <= aParam[6] .And. SB1->B1_XCLAS == "C"
+					lContinua := .T.
+				EndIf
+			EndIf
+				
+			EndIf		
+		EndIf
+	Else
+		lContinua := .T.
+	EndIf
+	If lContinua
+		If (cCursor)->DA1_CODTAB+(cCursor)->DA1_CODPRO+(cCursor)->DA1_GRUPO +(cCursor)->DA1_REFGRD == cUltProc
+			lContinua := .F.
+		EndIf
+	EndIf
+	If lContinua 
+		RejTabP((cCursor)->DA1_CODTAB,(cCursor)->DA1_CODPRO,aParam[9],aParam[10],aParam[12]==1, aParam[13], @aAtuPrV,(cCursor)->DA1_GRUPO,(cCursor)->DA1_REFGRD,(cCursor)->DA1_MOEDA)
+		lAtualiza := .T.
+	EndIf	
+	cUltProc := (cCursor)->DA1_CODTAB+(cCursor)->DA1_CODPRO+(cCursor)->DA1_GRUPO+(cCursor)->DA1_REFGRD
+	dbSelectArea(cCursor)
+	dbSkip()
+	IncProc(OemtoAnsi("Actualizando")+": "+(cCursor)->DA1_CODTAB)
+EndDo
+If lQuery
+	dbSelectarea(cCursor)
+	dbCloseArea()
+	dbSelectArea("DA1")
+Else
+	dbSelectArea("DA1")
+	RetIndex("DA1")
+	Ferase(cArqInd+OrdBagExt())
+EndIf
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Atualiza Preco de Venda do Produto³ 
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+For nX := 1 To Len(aAtuPrV)
+	dbSelectArea("SB1")
+	dbSetOrder(1)
+	If MsSeek(xFilial("SB1")+aAtuPrV[nX][1])
+		RecLock("SB1",.F.)
+		SB1->B1_PRV1 := aAtuPrV[nX][2]
+		MsUnLock()
+	EndIf
+Next nX
+aAtuPrV := {}
+
+RestArea(aArea)    
+Return
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄ¿±±
+±±³Funcao    ³RejTabP³ Autor ³ Eduardo Riera         ³ Data ³07.05.00     ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³Rotina de reajuste da tabela de preco                       ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Retorno   ³ExpN1: Numerico (Preco de Venda)                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³ExpC1: Tabela de Preco                                      ³±±
+±±³          ³ExpC2: Codigo do Produto                                    ³±±
+±±³          ³ExpN3: Fator                                                ³±±
+±±³          ³ExpN4: Decimais a serem consideradas                        ³±±
+±±³          ³ExpL5: Aplica fator no preco base para calculo              ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³   DATA   ³ Programador   ³Manutencao Efetuada                         ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³          ³               ³                                            ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+Static Function RejTabP(cCodTab,cCodPro,nFator,nDecimais,lFator,cPlanilha,aAtuPrV,cGrupo,cCodRef,rmoeda)                           
+
+Local aArea    := GetArea()
+Local aAreaDA0 := DA0->(GetArea())
+Local aAreaDA1 := DA1->(GetArea())
+Local nBase    := 0
+Local nPrcAnt  := 0
+Local lPReaj   := .F.
+Local nFtAplic := 0
+
+
+DEFAULT nDecimais := TamSx3("DA1_PRCVEN")[2]
+DEFAULT lFator    := .F.
+DEFAULT cPlanilha := ""
+DEFAULT cGrupo    := ""
+DEFAULT aAtuPrV   := {}
+
+//If !Empty(cPlanilha)                                             
+//	Pergunte("MTC010",.F.)   //Ver de sacar
+//Endif	
+
+If !Empty(cCodPro)
+	dbSelectArea("DA1")
+	dbSetOrder(1)
+	If MsSeek(xFilial("DA1")+cCodTab+cCodPro)
+
+		While !Eof() .And. DA1->DA1_FILIAL == xFilial("DA1") .And.;
+			DA1->DA1_CODTAB == cCodTab .And. DA1->DA1_CODPRO == cCodPro
+
+			Begin Transaction
+
+		//	nBase   := DA1->DA1_PRCVEN 
+			nBase	:= PRECOCOM(cCodPro,rmoeda)
+		//	nPrcAnt := DA1->DA1_PRCVEN 
+			nPrcAnt := PRECOCOM(cCodPro,rmoeda)
+			nFtAplic:= nFator
+		
+			If lFator
+				dbSelectArea("SB1")
+				dbSetOrder(1)
+				If MsSeek(xFilial("SB1")+cCodPro)
+					//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+					//³Atualiza pela planilha de formacao de precos          ³ 
+					//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+					If !Empty(cPlanilha)
+					 	nBase := MaPrcPlan(cCodPro,cPlanilha,cCodTab,nBase)				 	
+					Else
+						nBase := SB1->B1_PRV1
+					EndIf
+
+					//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+					//³ Atualiza Preco de Venda Produto³
+					//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+					If mv_par14 == 2 .And. nFtAplic > 0
+						If aScan(aAtuPrV,{|x| x[1]==cCodPro}) == 0
+							aAdd(aAtuPrV,{cCodPro,NoRound(nBase * nFtAplic,nDecimais)})
+						Endif
+					EndIf																						
+			    EndIf
+			Else
+				//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+				//³Atualiza pela planilha de formacao de precos          ³ 
+				//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+				If !Empty(cPlanilha)
+					nBase := MaPrcPlan(cCodPro,cPlanilha,cCodTab,nBase)				
+				EndIf
+			EndIf
+			
+			If DA1->DA1_PERDES > 0
+				nFtAplic*= DA1->DA1_PERDES
+			EndIf
+			
+	        RecLock("DA1")
+			DA1->DA1_PRCVEN := If(nFtAplic > 0, NoRound(nBase * nFtAplic,nDecimais), nBase )
+	        MsUnLock()
+        
+			End Transaction
+
+			//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+			//³Ponto de entrada para atualizacao de precos           ³ 
+			//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+			If lPReaj
+				ExecBlock("OS010REJ",.F.,.F.,{nPrcAnt, DA1->DA1_PRCVEN}) //Tratar de sacar
+			Endif	
+        
+			dbSelectArea("DA1")
+			dbSkip()
+		EndDo
+
+	EndIf
+Elseif !Empty(cGrupo)
+	dbSelectArea("DA1")
+	dbSetOrder(4)
+	If MsSeek(xFilial("DA1")+cCodTab+cGrupo)
+
+		While !Eof() .And. DA1->DA1_FILIAL == xFilial("DA1") .And.;
+			DA1->DA1_CODTAB == cCodTab .And. DA1->DA1_GRUPO == cGrupo
+
+			Begin Transaction
+
+		//	nBase   := DA1->DA1_PRCVEN 
+			nBase	:= PRECOCOM(cCodPro,rmoeda)
+		//	nPrcAnt := DA1->DA1_PRCVEN 
+			nPrcAnt := PRECOCOM(cCodPro,rmoeda)
+			nFtAplic:= nFator
+		
+			If DA1->DA1_PERDES > 0
+				nFtAplic*= DA1->DA1_PERDES
+			EndIf
+
+	        RecLock("DA1")
+			DA1->DA1_PRCVEN := If(nFtAplic > 0, NoRound(nBase * nFtAplic,nDecimais), nBase )
+	        MsUnLock()
+        
+			End Transaction
+       
+			dbSelectArea("DA1")
+			dbSkip()
+		EndDo
+
+	EndIf
+Elseif !Empty(cCodRef)
+	dbSelectArea("DA1")
+	dbSetOrder(5)
+	If MsSeek(xFilial("DA1")+cCodTab+cCodRef)
+
+		While !Eof() .And. DA1->DA1_FILIAL == xFilial("DA1") .And.;
+			DA1->DA1_CODTAB == cCodTab .And. DA1->DA1_REFGRD == cCodRef
+
+			Begin Transaction
+
+		//	nBase   := DA1->DA1_PRCVEN 
+			nBase	:= PRECOCOM(cCodPro,rmoeda)
+		//	nPrcAnt := DA1->DA1_PRCVEN 
+			nPrcAnt := PRECOCOM(cCodPro,rmoeda)
+			nFtAplic:= nFator
+		
+			If DA1->DA1_PERDES > 0
+				nFtAplic*= DA1->DA1_PERDES
+			EndIf
+
+	        RecLock("DA1")
+			DA1->DA1_PRCVEN := If(nFtAplic > 0, NoRound(nBase * nFtAplic,nDecimais), nBase )
+	        MsUnLock()
+        
+			End Transaction
+
+			dbSelectArea("DA1")
+			dbSkip()
+		EndDo
+
+	EndIf
+EndIf
+
+If !Empty(cPlanilha)                                             
+	Pergunte("Ven010",.F.)
+Endif	
+
+RestArea(aAreaDA1)
+RestArea(aAreaDA0)
+RestArea(aArea)
+Return(.T.)
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄ¿±±
+±±³Funcao    ³MaPrcPlan  ³ Autor ³Henry Fila             ³ Data ³03.05.02 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³Busca preco de acordo cVN a planilha de precos              ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Retorno   ³ExpC1: Produto                                              ³±±
+±±³          ³ExpC2: Planilha                                             ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³ExpN1: Preco                                                ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³   DATA   ³ Programador   ³Manutencao Efetuada                         ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³          ³               ³                                            ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+
+Static Function MaPrcPlan(cProduto,cPlanilha,cCodTab,nPreco)
+
+Local aArray := {}
+Local nX     := 0
+Local nPos   := 0
+
+Private cArqMemo   := cPlanilha
+Private lDirecao   := .T.  
+Private nQualCusto := 1
+Private cProg      := "R430"
+Default nPreco := 0
+
+If !Empty(cPlanilha)
+	SB1->(dbSetOrder(1))
+	If SB1->(MsSeek(xFilial("SB1")+cProduto))
+		cArqMemo := cPlanilha
+		aArray   := MC010Forma("SB1",SB1->(RecNo()),98)
+	Endif	
+Endif		
+
+If ValType(aArray) <> "A"
+	aArray := {}
+Endif	
+
+For nX := 1 To Len(aArray)
+	nPos := At("#"+cCodTab,aArray[nX][3])	
+	If nPos > 0
+		nPreco := aArray[nX][6]
+		Exit		
+	EndIf
+Next nX
+
+If nPos == 0
+	For nX := 1 To Len(aArray)
+		nPos  := At("@",aArray[nX][3])
+		If nPos > 0
+			nPreco := aArray[nX][6]
+			Exit
+		EndIf
+	Next nX
+Endif	
+
+
+Return(nPreco)
+
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄ¿±±
+±±³Funcao    ³MATABPRVEN ³ Autor ³ Henry Fila            ³ Data ³ 20.04.00³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄ´±±
+±±³Descri‡…o ³Funcao para trazer preco de venda de acordo cVN a qtde      ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Retorno   ³ExpN1: Numerico (Preco de Venda)                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³ExpC1: Tabela de Preco                                      ³±±
+±±³          ³ExpC2: Codigo do Produto                                    ³±±
+±±³          ³ExpN3: Quantidade                                           ³±±
+±±³          ³ExpC4: Cliente                                              ³±±
+±±³          ³ExpC5: Loja                                                 ³±±
+±±³          ³ExpN6: Moeda a ser retornada                                ³±±
+±±³          ³ExpD7:                                                      ³±±
+±±³          ³ExpN8: Tipo                                                 ³±±
+±±³          ³       1 = Preco (Default)                                  ³±±
+±±³          ³       2 = Fator de acrescimo ou desconto                   ³±±
+±±³          ³ExpL9:                                                      ³±±
+±±³          ³ExpL10:                                                     ³±±
+±±³          ³ExpL11:Se o cliente deve ser tratado cVNo um prospect       ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³   DATA   ³ Programador   ³Manutencao Efetuada                         ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ 04/12/06 ³ Conrado Q.    ³ - BOPS: 111439: Criado parâmetro para atu  ³±±
+±±³          ³               ³ alização das variáveis estáticas.          ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+Static Function MaTabPrVen(cTabPreco,cProduto,nQtde,cCliente,cLoja,nMoeda,dDataVld,nTipo,lExec,lAtuEstado,lProspect)
+
+Static cMvEstado
+Static cMvNorte
+
+Local aArea     := GetArea()
+Local aAreaSB1  := SB1->(GetArea())
+Local aStruDA1  := {}
+
+Local cTpOper   := ""
+Local cQuery    := ""
+Local cAliasDA1 := "DA1"
+                              
+Local nPrcVen   := 0
+Local nResult   := 0
+Local nMoedaTab := 1
+Local nScan     := 0
+Local nY        := 0
+Local cMascara  := SuperGetMv("MV_MASCGRD")      
+Local nTamProd  := Len(SB1->B1_COD)
+Local nFator    := 0
+
+Local lUltResult:= .T.
+Local lQuery    := .F.
+Local nProcessa := 0
+Local lGrade    := MaGrade()
+Local lGradeReal:= .F.
+Local lPrcDA1   := .F.
+Local cProdRef  := cProduto 
+Local lSeekDa1  := .F. 
+
+DEFAULT cMvEstado := GetMv("MV_ESTADO")
+DEFAULT cMvNorte  := GetMv("MV_NORTE")
+DEFAULT nMoeda    := 1
+DEFAULT aUltResult:= {}                                                    
+DEFAULT dDataVld  := dDataBase
+DEFAULT nTipo     := 1
+DEFAULT lExec     := .T.
+DEFAULT lAtuEstado:= .F.
+DEFAULT lProspect := .F.
+
+If lAtuEstado
+	cMvEstado	:= GetMv("MV_ESTADO")
+	cMvNorte	:= GetMv("MV_NORTE")
+Endif
+
+If lGrade .And. MatGrdPrrf(@cProdRef,.T.)
+	nTamProd	:= Len(cProdRef)
+	lGradeReal := .T.	
+	cProdRef	:= Padr(cProdRef,Len(DA1->DA1_REFGRD))	
+Endif
+
+If ExistBlock("VN010PRC") .And. lExec
+	nResult := ExecBlock("VN010PRC",.F.,.F.,{cTabPreco,cProduto,nQtde,cCliente,cLoja,nMoeda,dDataVld,nTipo})
+Else
+
+	nScan := aScan(aUltResult,{|x| x[1] == cTabPreco .And.;
+									x[2] == cProduto .And.;
+									x[3] == nQtde .And.;
+									x[4] == cCliente .And.;
+									x[5] == cLoja .And.;
+									x[6] == nMoeda .And.;
+									x[7] == cFilAnt .And.;
+									x[10] == lProspect})
+			
+	If nScan == 0
+	
+		If !(Empty(cCliente) .And. nQtde == 0 )
+			//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+			//³Se for prospect, pega a informação do mesmo.            ³
+			//³Funcionalidade implantada para utilização do televendas,³
+			//³já que ele suporta orçamento para prospect.             ³
+			//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+			If lProspect
+				//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+				//³Acho o tipo de operacao para busca do preco de venda³
+				//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+				dbSelectArea("SUS")
+				dbSetOrder(1)
+				If MsSeek(xFilial("SUS")+cCliente+cLoja)
+					Do Case
+						Case SUS->US_EST == cMvEstado
+							cTpOper := "1"
+						Case SUS->US_EST != cMvEstado
+							If (SUS->US_EST $ cMvNorte) .And. !(cMvEstado $ cMvNorte) .And. !(SUS->US_EST $ ('DF/ES/GO'))
+								cTpOper := "3"
+							Else
+								cTpOper := "2"
+							EndIf						
+					EndCase					
+				EndIf															
+			Else
+				//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+				//³Acho o tipo de operacao para busca do preco de venda³
+				//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+				dbSelectArea("SA1")
+				dbSetOrder(1)
+				If MsSeek(xFilial("SA1")+cCliente+cLoja)
+					Do Case
+						Case SA1->A1_EST == cMvEstado
+							cTpOper := "1"
+						Case SA1->A1_EST != cMvEstado
+							If (SA1->A1_EST $ cMvNorte) .And. !(cMvEstado $ cMvNorte).And. !(SA1->A1_EST $ ('DF/ES/GO'))
+								cTpOper := "3"
+							Else
+								cTpOper := "2"
+							EndIf						
+					EndCase					
+				EndIf															
+			EndIf
+		Endif	
+	
+		dbSelectarea("DA1")
+		dbSetOrder(1)
+	
+		#IFDEF TOP
+			If TcSrvType() <> "AS/400"
+				lQuery    := .T.
+				cAliasDA1 := GetNextAlias()
+				aStruDA1  := DA1->(dbStruct())
+				cQuery    := ""
+
+				If lGradeReal
+					cQuery += "SELECT * FROM ( "
+				EndIf
+
+				cQuery += "SELECT * "
+				cQuery += "FROM "+RetSqlName("DA1")+ " DA1 "
+				cQuery += "WHERE "
+				cQuery += "DA1.DA1_FILIAL = '"+xFilial("DA1")+"' AND "
+				cQuery += "DA1.DA1_CODTAB = '"+cTabPreco+"' AND "
+				cQuery += "DA1.DA1_CODPRO = '"+cProduto+"' AND "			
+				cQuery += "DA1.DA1_QTDLOT >= "+Str(nQtde,18,8)+" AND "
+				cQuery += "DA1.DA1_ATIVO = '1' AND  "			
+				
+	    		cQuery += "( DA1.DA1_DATVIG <= '"+DtoS(dDataVld)+ "' OR DA1.DA1_DATVIG = '"+Dtos(Ctod("//"))+ "' ) AND "
+				
+				If !(nQtde == 0 .And. Empty(cCliente))
+					cQuery += "( DA1.DA1_TPOPER = '"+cTpOper+"' OR DA1.DA1_TPOPER = '4' ) AND "
+				Endif                     
+				
+				cQuery += "DA1.D_E_L_E_T_ = ' ' "
+				If lGradeReal
+					cQuery += " UNION "
+					cQuery += "SELECT * "
+					cQuery += "FROM "+RetSqlName("DA1")+ " DA1 "
+					cQuery += "WHERE "
+					cQuery += "DA1.DA1_FILIAL = '"+xFilial("DA1")+"' AND "
+					cQuery += "DA1.DA1_CODTAB = '"+cTabPreco+"' AND "
+					cQuery += "DA1.DA1_REFGRD = '"+cProdRef+"' AND "			
+					cQuery += "DA1.DA1_QTDLOT >= "+Str(nQtde,18,8)+" AND "
+					cQuery += "DA1.DA1_ATIVO = '1' AND  "			
+					cQuery += "( DA1.DA1_DATVIG <= '"+DtoS(dDataVld)+ "' OR DA1.DA1_DATVIG = '"+Dtos(Ctod("//"))+ "' ) AND "
+				
+					If !(nQtde == 0 .And. Empty(cCliente))
+						cQuery += "( DA1.DA1_TPOPER = '"+cTpOper+"' OR DA1.DA1_TPOPER = '4' ) AND "
+					Endif                     
+				
+					cQuery += "DA1.D_E_L_E_T_ = ' ' "
+					cQuery += "AND NOT EXISTS ( "
+					cQuery += "SELECT DA1B.DA1_CODPRO  "
+					cQuery += "FROM "+RetSqlName("DA1")+ " DA1B "
+					cQuery += "WHERE "
+					cQuery += "DA1B.DA1_FILIAL = '"+xFilial("DA1")+"' AND "
+					cQuery += "DA1B.DA1_CODTAB = '"+cTabPreco+"' AND "
+					cQuery += "DA1B.DA1_CODPRO = '"+cProduto+"' AND "			
+					cQuery += "DA1B.DA1_QTDLOT >= "+Str(nQtde,18,8)+" AND "
+					cQuery += "DA1B.DA1_ATIVO = '1' AND  "			
+					cQuery += "( DA1B.DA1_DATVIG <= '"+DtoS(dDataVld)+ "' OR DA1B.DA1_DATVIG = '"+Dtos(Ctod("//"))+ "' ) AND "
+				
+					If !(nQtde == 0 .And. Empty(cCliente))
+						cQuery += "( DA1B.DA1_TPOPER = '"+cTpOper+"' OR DA1B.DA1_TPOPER = '4' ) AND "
+					Endif                     
+					cQuery += "DA1B.D_E_L_E_T_ = ' ' ) "
+			        
+			
+					cQuery += " UNION "
+					cQuery += "SELECT * "
+					cQuery += "FROM "+RetSqlName("DA1")+ " DA1 "
+					cQuery += "WHERE "
+					cQuery += "DA1.DA1_FILIAL = '"+xFilial("DA1")+"' AND "
+					cQuery += "DA1.DA1_CODTAB = '"+cTabPreco+"' AND "
+					cQuery += "DA1.DA1_CODPRO LIKE '"+cProduto+"%' AND "			
+					cQuery += "DA1.DA1_QTDLOT >= "+Str(nQtde,18,8)+" AND "
+					cQuery += "DA1.DA1_ATIVO = '1' AND  "			
+					cQuery += "( DA1.DA1_DATVIG <= '"+DtoS(dDataVld)+ "' OR DA1.DA1_DATVIG = '"+Dtos(Ctod("//"))+ "' ) AND "
+				
+					If !(nQtde == 0 .And. Empty(cCliente))
+						cQuery += "( DA1.DA1_TPOPER = '"+cTpOper+"' OR DA1.DA1_TPOPER = '4' ) AND "
+					Endif                     
+				
+					cQuery += "DA1.D_E_L_E_T_ = ' ' "
+					cQuery += "AND NOT EXISTS ( "
+					cQuery += "SELECT DA1C.DA1_CODPRO  "
+					cQuery += "FROM "+RetSqlName("DA1")+ " DA1C "
+					cQuery += "WHERE "
+					cQuery += "DA1C.DA1_FILIAL = '"+xFilial("DA1")+"' AND "
+					cQuery += "DA1C.DA1_CODTAB = '"+cTabPreco+"' AND "
+					cQuery += "DA1C.DA1_REFGRD = '"+cProdRef+"' AND "			
+					cQuery += "DA1C.DA1_QTDLOT >= "+Str(nQtde,18,8)+" AND "
+					cQuery += "DA1C.DA1_ATIVO = '1' AND  "			
+					cQuery += "( DA1C.DA1_DATVIG <= '"+DtoS(dDataVld)+ "' OR DA1C.DA1_DATVIG = '"+Dtos(Ctod("//"))+ "' ) AND "
+				
+					If !(nQtde == 0 .And. Empty(cCliente))
+						cQuery += "( DA1C.DA1_TPOPER = '"+cTpOper+"' OR DA1C.DA1_TPOPER = '4' ) AND "
+					Endif                     
+					cQuery += "DA1C.D_E_L_E_T_ = ' ' ) ) QRYDAI "
+			
+				Endif				
+				
+				cQuery += "ORDER BY "+SqlOrder(DA1->(IndexKey()))
+				cQuery := ChangeQuery(cQuery)
+				dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAliasDA1,.T.,.T.)
+				
+				If (cAliasDA1)->(!Eof())
+					nProcessa := 1
+				Else
+					SB1->(dbSetOrder(1))
+					If SB1->(MsSeek(xFilial("SB1")+cProduto))
+						cGrupo := SB1->B1_GRUPO
+						If !Empty(cGrupo)
+							(cAliasDA1)->(dbCloseArea())
+							cAliasDA1 := GetNextAlias()
+
+							cQuery := "SELECT * "
+							cQuery += "FROM "+RetSqlName("DA1")+ " DA1 "
+							cQuery += "WHERE "
+							cQuery += "DA1_FILIAL = '"+xFilial("DA1")+"' AND "
+							cQuery += "DA1_CODTAB = '"+cTabPreco+"' AND "
+							If cPaisLoc == "BRA"
+								cQuery += "DA1_GRUPO = '"+cGrupo+"' AND "
+							EndIf
+							cQuery += "DA1_QTDLOT >= "+Str(nQtde,18,8)+" AND "
+							cQuery += "DA1_ATIVO = '1' AND  "			
+				    		cQuery += "( DA1_DATVIG <= '"+DtoS(dDataVld)+ "' OR DA1_DATVIG = '"+Dtos(Ctod("//"))+ "' ) AND "
+							If !(nQtde == 0 .And. Empty(cCliente))
+								cQuery += "( DA1_TPOPER = '"+cTpOper+"' OR DA1_TPOPER = '4' ) AND "
+							Endif                     
+							cQuery += "DA1.D_E_L_E_T_ = ' ' "
+							cQuery += "ORDER BY "+SqlOrder(DA1->(IndexKey()))
+
+							cQuery := ChangeQuery(cQuery)
+
+							dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAliasDA1,.T.,.T.)
+
+							If (cAliasDA1)->(!Eof())
+								nProcessa := 2
+							EndIf
+						EndIf
+					EndIf
+				Endif
+				For nY := 1 To Len(aStruDA1)
+					If aStruDA1[nY][2]<>"C"
+						TcSetField(cAliasDA1,aStruDA1[nY][1],aStruDA1[nY][2],aStruDA1[nY][3],aStruDA1[nY][4])
+					EndIf
+				Next nY
+			Else
+		#ENDIF
+				lSeekDA1:= aPesqDA1(cTabPreco,cProduto)
+				If lSeekDA1
+					nProcessa := 1
+				Else
+					SB1->(dbSetOrder(1))
+					If SB1->(MsSeek(xFilial("SB1")+cProduto))
+						cGrupo := SB1->B1_GRUPO
+						If !Empty(cGrupo)
+							dbSelectarea("DA1")
+							dbSetOrder(4)
+							If MsSeek(xFilial("DA1")+ cTabPreco + cGrupo)
+								nProcessa := 2
+							EndIf
+						EndIF
+					Endif
+				EndIf
+		#IFDEF TOP
+			Endif
+		#ENDIF
+								
+		If nProcessa > 0
+		
+			If nQtde == 0 .And. Empty(cCliente)
+				nPrcVen   := (cAliasDA1)->DA1_PRCVEN
+				nMoedaTab := (cAliasDA1)->DA1_MOEDA
+				nFator    := (cAliasDA1)->DA1_PERDES
+				
+				lPrcDA1   := .T.
+			Else
+				//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+				//³Busco o preco e analiso a qtde de acordo cVN a faixa³
+				//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+				dbSelectArea(cAliasDA1)
+				While (cAliasDA1)->(!Eof()) .And. (cAliasDA1)->DA1_FILIAL == xFilial("DA1") .And.;
+									(cAliasDA1)->DA1_CODTAB == cTabPreco .And.;
+									If(nProcessa==1,Left((cAliasDA1)->DA1_CODPRO,nTamProd)== cProduto .Or. (cAliasDA1)->DA1_CODPRO==cProduto .Or. (cAliasDA1)->DA1_REFGRD == cProdRef,(cAliasDA1)->DA1_GRUPO==cGrupo)
+	
+					If nQtde <= (cAliasDA1)->DA1_QTDLOT .And. (cAliasDA1)->DA1_ATIVO == "1"
+					
+						If Empty((cAliasDA1)->DA1_ESTADO) .And. ((cAliasDA1)->DA1_TPOPER == cTpOper .Or. (cAliasDA1)->DA1_TPOPER == "4")				
+						
+							//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+							//³Verifica a vigencia do item                                   ³
+							//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+							
+							nQtdLote := (cAliasDA1)->DA1_QTDLOT
+							
+							While (cAliasDA1)->(!Eof()) .And. (cAliasDA1)->DA1_FILIAL == xFilial("DA1") .And.;
+																(cAliasDA1)->DA1_CODTAB == cTabPreco .And.;
+																If(nProcessa==1,Left((cAliasDA1)->DA1_CODPRO,nTamProd)== cProduto .Or. (cAliasDA1)->DA1_CODPRO==cProduto .Or. (cAliasDA1)->DA1_REFGRD == cProdRef ,(cAliasDA1)->DA1_GRUPO==cGrupo) .And.;
+																(cAliasDA1)->DA1_QTDLOT == nQtdLote .And.;
+																(cAliasDA1)->DA1_DATVIG <= dDataVld
+								If nQtde <= (cAliasDA1)->DA1_QTDLOT .And. (cAliasDA1)->DA1_ATIVO == "1" .And.;
+									((!Empty((cAliasDA1)->DA1_ESTADO) .And. ( If(lProspect, SUS->US_EST, SA1->A1_EST) == (cAliasDA1)->DA1_ESTADO )).Or.(Empty((cAliasDA1)->DA1_ESTADO) .And. ((cAliasDA1)->DA1_TPOPER == cTpOper .Or. (cAliasDA1)->DA1_TPOPER == "4")))
+									
+									nPrcVen   := (cAliasDA1)->DA1_PRCVEN
+									nMoedaTab := (cAliasDA1)->DA1_MOEDA 
+									nFator    := (cAliasDA1)->DA1_PERDES
+									
+									lPrcDA1   := .T.
+								EndIf
+												
+								dbSelectArea(cAliasDA1)
+								dbSkip()
+							Enddo
+							If lPrcDA1
+								Exit
+							Endif
+	
+						ElseIf !Empty((cAliasDA1)->DA1_ESTADO) .And. ( If(lProspect, SUS->US_EST, SA1->A1_EST) == (cAliasDA1)->DA1_ESTADO )
+						
+							//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+							//³Verifica a vigencia do item                                   ³
+							//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+							
+							nQtdLote := (cAliasDA1)->DA1_QTDLOT
+							
+							While (cAliasDA1)->(!Eof()) .And. (cAliasDA1)->DA1_FILIAL == xFilial("DA1") .And.;
+																	(cAliasDA1)->DA1_CODTAB == cTabPreco .And.;
+																	If(nProcessa==1,Left((cAliasDA1)->DA1_CODPRO,nTamProd)== cProduto .Or. (cAliasDA1)->DA1_CODPRO==cProduto .Or. (cAliasDA1)->DA1_REFGRD == cProdRef,(cAliasDA1)->DA1_GRUPO==cGrupo) .And.;
+																	(cAliasDA1)->DA1_QTDLOT == nQtdLote .And.;																
+																	(cAliasDA1)->DA1_DATVIG <= dDataVld 
+								If nQtde <= (cAliasDA1)->DA1_QTDLOT .And. (cAliasDA1)->DA1_ATIVO == "1" .And.;
+									((!Empty((cAliasDA1)->DA1_ESTADO) .And. ( If(lProspect, SUS->US_EST, SA1->A1_EST) == (cAliasDA1)->DA1_ESTADO )).Or.(Empty((cAliasDA1)->DA1_ESTADO) .And. ((cAliasDA1)->DA1_TPOPER == cTpOper .Or. (cAliasDA1)->DA1_TPOPER == "4")))
+
+		
+									nPrcVen   := (cAliasDA1)->DA1_PRCVEN
+									nMoedaTab := (cAliasDA1)->DA1_MOEDA
+									nFator    := (cAliasDA1)->DA1_PERDES
+		
+									lPrcDA1   := .T.
+									
+								Endif									
+									
+								dbSelectArea(cAliasDA1)
+								dbSkip()
+							Enddo
+							If lPrcDA1
+								Exit
+							Endif	 
+							
+						EndIf									
+					EndIf						
+					dbSelectArea(cAliasDA1)
+					dbSkip()
+				Enddo	     
+	
+				//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+				//³SVNente atualiza cVN o SB1 caso nao tenha achado nenhuma tabela    ³
+				//³caso contrario retornara o preco zerado                            ³			
+				//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+			                                  
+				If nTipo == 1 
+					If nPrcVen == 0 .And. !lPrcDA1
+						dbSelectArea("SB1")
+						dbSetOrder(1)
+						If MsSeek(xFilial("SB1")+cProduto)
+							nPrcVen := SB1->B1_PRV1
+						EndIf
+						lUltResult := .F.
+					Endif				
+				Endif
+				
+			EndIf
+		Else                     
+			If nTipo == 1 
+				If nPrcVen == 0 .And. !lPrcDA1 
+					dbSelectArea("SB1")
+					dbSetOrder(1)
+					If MsSeek(xFilial("SB1")+cProduto)
+						nPrcVen := SB1->B1_PRV1
+					EndIf
+				EndIf	
+			Endif	
+			lUltResult := .F.
+		EndIf
+	
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³Se o tipo for para trazer preco converte para a moeda    ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	
+		nFator := Iif( nFator == 0, 1, nFator )	
+		
+		If nTipo == 1
+			nResult := xMoeda(nPrcVen,nMoedaTab,nMoeda,,TamSx3("D2_PRCVEN")[2])
+		Else 
+			nResult	:= nFator
+		Endif
+		
+			
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³Guarda os ultimos resultados                                            ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		If lUltResult
+			aadd(aUltResult,{cTabPreco,cProduto,nQtde,cCliente,cLoja,nMoeda,cFilAnt,nResult,nFator,lProspect})
+			If Len(aUltResult) > MAXSAVERESULT
+				aUltResult := aDel(aUltResult,1)
+				aUltResult := aSize(aUltResult,MAXSAVERESULT)
+			EndIf
+		EndIf
+	Else
+	
+		If nTipo == 1
+			nResult := aUltResult[nScan][8]
+		Else                               
+			nResult := aUltResult[nScan][9]	
+		Endif	
+	EndIf                                           
+Endif	
+If lQuery
+	dbSelectArea(cAliasDA1)
+	dbCloseArea()
+	dbSelectArea("DA1")
+Endif	
+
+RestArea(aAreaSB1)
+RestArea(aArea)
+Return(nResult)
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³aPesqDA1  ºAutor  ³Patricia Duca Aguiarº Data ³  03/04/07   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³Funcao genérica para pesquisa no arquivo DA1(tabela de pre-)º±±
+±±º          ³co, que deve considerar codigo do produto ou Referencia de  º±±
+±±º          ³grade                                                       º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºParametros³ ExpC1 - Codigo da Tabela de preço                          º±±
+±±º          ³ ExpC2 - Codigo do Produto                                  º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+Static Function aPesqDA1(cTabela,cProduto)
+
+Local cProdRef    := cProduto
+Local lRet        := .F.
+Local lReferencia := .F.
+
+cProduto:= Pad(cProduto,Len(DA1->DA1_CODPRO))
+lReferencia := MatGrdPrRf(@cProdRef,.T.)
+If Alltrim(cProduto)== Alltrim(cProdRef) .And. lReferencia
+	dbSelectarea("DA1")
+	dbSetOrder(5)
+	If MsSeek(xFilial("DA1")+cTabela+Pad(cProdRef,len(DA1->DA1_REFGRD)),.F.)
+		lRet := .T.
+	Else
+		dbSelectarea("DA1")
+		dbSetOrder(1)
+		DbSeek(xFilial("DA1")+cTabela+cProduto,.T.)
+		If !EOF()
+			lRet:=.T.
+		Endif
+	Endif
+Else
+	dbSelectarea("DA1")
+	dbSetOrder(1)
+	If MsSeek(xFilial("DA1")+cTabela+cProduto,.F.)		
+		lRet := .T.
+	Else
+		If MaGrade() .And. lReferencia
+			dbSelectarea("DA1")
+			dbSetOrder(5)
+			If MsSeek(xFilial("DA1")+cTabela+Pad(cProdRef,len(DA1->DA1_REFGRD)),.F.)
+				lRet := .T.
+			Endif
+		Endif
+	Endif
+Endif
+Return(lRet)
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡„o    ³VenA010Grd³Autor  ³Alexandre Inacio Lemes ³ Data ³22/10/2008 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descricao ³ Valida a digitacao de produtos de grade                     ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³ Nenhum                                                      ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Retorno   ³ .T. se Valido ou .F. se Invalido                            ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³Pergunte Ven010 da Tabela de Precos Faturamento VenA010.PRX  ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+Static Function VenA010Grd()
+
+Local aArea	      := GetArea()
+Local lReferencia := .F.
+Local lRet 		  := .T.
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³Verifica se a grade esta ativa e se o produto digitado e uma referencia     ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If MaGrade() .And. !Empty(&(ReadVar()))
+	cProdRef := &(ReadVar())
+	lReferencia := MatGrdPrrf(@cProdRef)
+	
+	If lReferencia
+		lRet := .T.
+	Else
+		//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+		//³ Se o Produto nao for um produto de grade executa a validacao no SB1 ³
+		//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+		dbSelectArea("SB1")
+		dbSetOrder(1)
+		If !dbSeek(xFilial("SB1")+cProdRef,.F.)
+			Help("  ",1,"REGNOIS")
+			lRet := .F.
+		EndIf
+	EndIf
+Else
+	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+	//³ Se o Produto nao for um produto de grade executa a validacao no SB1     ³
+	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+	lRet := ExistCpo("SB1")
+EndIf
+
+RestArea(aArea)
+
+Return(lRet)                             
+
+/*/
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Fun‡„o    ³PRECOCOM  ³Autor  ³Fernando Cardeza       ³ Data ³29/11/2013 ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descricao ³ Trae el precio de compra del producto                       ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Parametros³ Ninguno                                                     ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Retorno   ³ Precio de compra (Desde lista o B1_UPRC)                    ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Uso       ³															   ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/                                
+
+Static Function PRECOCOM(cCodPro,rmoeda)
+Local aAreaAIA := AIA->(GetArea())
+Local aAreaAIB := AIB->(GetArea())
+Local nBase    := 0
+Local cQuery   :=""
+
+dbSelectArea("SB1")
+dbSetOrder(1)
+If MsSeek(xFilial("SB1")+ALLTRIM(cCodPro))
+	If !Empty(SB1->B1_PROC) //.AND.!Empty(SB1->B1_XLOJA)
+		cCodFor		:=SB1->B1_PROC
+		cLoja		:="01"  //Revisarlo
+		    
+			dbSelectArea("AIB")
+			dbSetOrder(2)
+			If DbSeek(xFilial("AIB")+cCodFor+cLoja)
+		/*		While !Eof() .And. AIB->AIB_FILIAL == xFilial("AIB") .And.;
+					AIB->AIB_CODFOR == cCodFor .And.;
+					AIB->AIB_LOJFOR == cLoja .And.;
+					AIB->AIB_CODPRO == cCodPro .And.;
+					AIB->AIB_DATVIG >= dDataBase
+			        	If AIB->AIB_MOEDA==rmoeda
+							nBase   := AIB->AIB_PRCCOM
+					    Else
+					    	nBase   := ROUND(xMoeda(AIB->AIB_PRCCOM,AIB->AIB_MOEDA,rmoeda,dDataBase,5),2)
+					    EndIf
+					dbSelectArea("AIB")
+					dbSkip()
+				EndDo */           
+				//F 
+			cQuery1 := "SELECT MAX(AIB_DATVIG) FROM " + RetSqlName("AIB") + " "
+			cQuery1 += "WHERE D_E_L_E_T_ = '' AND AIB_CODFOR = '" + cCodFor + "' AND "
+			cQuery1 += "AIB_LOJFOR = '" + cLoja + "' AND "
+			cQuery1 += "AIB_CODPRO = '" + cCodPro + "' "
+			
+			cQuery := "SELECT AIB_PRCCOM,AIB_MOEDA FROM " + RetSqlName("AIB") + " "
+			cQuery += "WHERE D_E_L_E_T_ = '' AND AIB_CODFOR = '" + cCodFor + "' AND "
+			cQuery += "AIB_LOJFOR = '" + cLoja + "' AND "
+			cQuery += "AIB_CODPRO = '" + cCodPro + "' AND "
+			cQuery += "AIB_DATVIG = (" + cQuery1 + ") "   // armar fecha de vigencia  para que tome a partir de la ultima fecha
+			cQuery := PLSAvaSQL(cQuery)
+		    If Select("TODO02") <> 0
+          		DBSelectArea("TODO02")
+          		TODO02->(DBCloseArea())
+    	 	EndIf
+   		  	// Executa a Query
+     		PLSQuery(cQuery,"TODO02")
+   		  	// Vai para o inicio da area de trabalho
+     			If !EMPTY(TODO02->AIB_PRCCOM)
+     				If TODO02->AIB_MOEDA==rmoeda
+						nBase   := TODO02->AIB_PRCCOM
+					Else
+				  		nBase   := ROUND(xMoeda(TODO02->AIB_PRCCOM,TODO02->AIB_MOEDA,rmoeda,dDataBase,5),2)
+					EndIf       
+				Else
+					nBase :=SB1->B1_UPRC
+				EndIf
+			Else
+				nBase :=SB1->B1_UPRC
+			EndIf
+	Else
+		nBase :=SB1->B1_UPRC
+	EndIf
+																							
+EndIf    
+
+RestArea(aAreaAIB)
+RestArea(aAreaAIA)
+Return(nBase)

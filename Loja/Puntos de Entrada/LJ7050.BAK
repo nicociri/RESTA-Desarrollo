@@ -1,0 +1,44 @@
+#INCLUDE "PROTHEUS.CH"
+
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³NOVO9     ºAutor  ³Microsiga           ºFecha ³  09/09/11   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³   Punto de entrada para modificar el codigo de cliente     º±±
+±±º          ³   enviado a la fiscal                                      º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ AP                                                        º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+User Function LJ7050(cRetorno, lImpTicket)
+
+Local cCadena	:= cRetorno
+Local aCadena	:= {}
+Local nX		:= 1  
+Local cRet		:="" 
+Local aArea := GetArea()
+Local cSocio
+
+//msgstop(cCadena)  
+aCadena	:= strtokarr(cCadena,"|") 
+if len(ALLTRIM(SL1->L1_XFIDEL)) == 0
+	aCadena[2]	:= alltrim(SL1->L1_CLIENTE) + "-" + Alltrim(aCadena[2]) 
+else
+	cSocio := alltrim(posicione ("ZZV",2, xfilial("ZZV")+SL1->L1_XFIDEL, "ZZV_DESCRI"))
+	aCadena[2]	:= alltrim(SL1->L1_XFIDEL) + "-" + Alltrim(aCadena[2])
+endif     
+for nX:=1 to Len(aCadena) 
+	cRet	:= cRet + aCadena[nX]
+	if nX != Len(aCadena)
+		cRet	:= cRet	+ "|"
+	Endif
+Next nX
+
+RestArea(aArea)
+Return cRet

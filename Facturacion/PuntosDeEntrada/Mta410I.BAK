@@ -1,0 +1,327 @@
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄ¿±±
+±±³Funcion   ³ Mta410I  ³ Autor ³ Fernando Cardeza		³ Data ³   .  .    ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³Descrip.  ³ Punto de Entrada al Grabar el SC5                           ³±±
+±±³          ³                                                             ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ Uso      ³ Generico                                                    ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ ATUALIZACIONES SUFRIDAS DESDE EL DESARROLLO INICIAL                    ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³ PROGRAMADOR  ³ FECHA  ³ BOPS ³  MOTIVO DE LA ALTERACION                ³±±
+±±ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´±±
+±±³              ³        ³      ³                                         ³±±
+±±ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+/*/
+User Function Mta410I
+Local aArea := GetArea()
+Local aSC5  := SC5->(GetArea())
+Local aSC52 := SC5->(GetArea())
+Local aSC6  := SC6->(GetArea()) 
+Local aSC9  := SC9->(GetArea())
+Local aSCJ  := SCJ->(GetArea())
+Local nTotal:= 0
+Local atotaco:=0    
+Local cNum	:= ""
+Local aRet1	:={}
+Local cTes	:=.F.
+
+IF isincallstack("A410COPIA")
+RestArea( aSC5 )
+RestArea( aSC6 )
+RestArea( aSC9 )
+RestArea( aSCJ )
+RestArea( aArea )
+
+Return        
+ENDIF
+
+If inclui .AND. (SC5->C5_DOCGER=="3" .OR. SC5->C5_DOCGER=="1")
+	If !Empty(SC5->C5_XNROACO) .AND. SC5->C5_XESACO=="S"
+ 	   	For nX := 1 To Len( aCols )
+      	If GdDeleted()
+         	Loop
+      	EndIf
+      		nTotal   += xMoeda( GdFieldGet('C6_VALOR', nX), M->C5_MOEDA, 1, dDataBase, 4, M->C5_TXMOEDA, 1 )
+        Next
+   		
+   		If Inclui
+			SC5->C5_XTOTACO := nTotal
+   			Z01->(DbSetOrder(1))
+      		If Z01->(DbSeek(xFilial('Z01')+SC5->C5_XNROACO))
+         		RecLock('Z01',.F.)
+         		Replace Z01_STATUS With "2"
+      //   		Replace Z01_XVFAC  With nTotal
+         		MsUnLock()
+      		EndIf
+   		EndIf
+	EndIf
+EndIf
+
+If inclui .AND. SC5->C5_DOCGER=="2" .AND. SC5->C5_CATPV<>GetMv("MV_CATPV") 
+
+	//For nx:=1 to len(aCols)  	
+	For nx:=1 to len(aCols)  	
+	   If aCols [nx][AScan(aHeader,{|x| AllTrim(x[2]) == "C6_TES"})]==GetMv("MV_TESFUT") .AND. !cTes
+	      cTes:=.T.
+	   EndIf
+    Next  			
+	
+	If cTes
+                                                                
+   		//	aRet1:=AlTraePed1 (SC5->C5_NUM)
+		//	If !Empty(aRet1)
+		//		SC5-C5_X			:=aRet1[1][1] //SC5->C5_NUM
+   		//	EndIf
+    
+  		aRet2:=AlTraePed2 (SC5->C5_XPVTRO)
+		For nx:=1 to len(aRet2)  	 
+			IF  SC6->C6_PRODUTO==aRet2[nx][1]
+				SC6->C6_QTDLIB		:=SC6->C6_QTDVEN
+				SC6->C6_ENTREG		:=aRet2[nx][7]
+				SC6->C6_VALDESC		:=aRet2[nx][2]
+				SC6->C6_DESCONT		:=aRet2[nx][3]
+				SC6->C6_PRCVEN		:=aRet2[nx][4]
+				SC6->C6_VALOR		:=aRet2[nx][5]
+				SC6->C6_PRUNIT		:=aRet2[nx][6]
+				SC6->C6_DESCRI		:=aRet2[nx][8]                                 
+   			EndIf    
+ 	  		IF  SC9->C9_PRODUTO==aRet2[nx][1]
+				RecLock('SC9',.F.)                
+				Replace C9_PRCVEN with aRet2[nx][4]
+				MsUnLock()                                 
+   			EndIf 
+   		Next nX 
+   		
+   		For nx := 1 to len(acols)
+      	If GdDeleted()
+         	Loop
+      	EndIf
+  			nTotal   += xMoeda( GdFieldGet('C6_VALOR', nX), M->C5_MOEDA, 1, dDataBase, 4, M->C5_TXMOEDA, 1 ) 
+   		Next
+  		    
+   		    If atotaco==nTotal
+				SC5->C5_XTOTACO := nTotal
+			Endif
+			APROV()			
+   			
+   			Z01->(DbSetOrder(1))
+      		If Z01->(DbSeek(xFilial('Z01')+SC5->C5_XNROACO))
+         		RecLock('Z01',.F.)
+         		Replace Z01_STATUS With "4"
+         		MsUnLock()
+      		EndIf                        	   		
+	EndIf		
+	
+	If !Empty(SC5->C5_XNROACO) .AND. Empty(SC5->C5_XDOCACO) .AND. SC6->C6_TES<>GetMv("MV_TESFUT")
+ 	   		For nX := 1 To Len( aCols )
+      			If GdDeleted()
+         			Loop
+      			EndIf
+      			If nx <= Len(acols)
+      		nTotal   += xMoeda( GdFieldGet('C6_VALOR', nX), M->C5_MOEDA, 1, dDataBase, 4, M->C5_TXMOEDA, 1 )
+      		EndIf
+        	Next   		
+   		
+   			SC5->C5_XTOTACO := nTotal
+			APROV()
+    EndIf
+EndIf
+
+If inclui .AND. SC5->C5_DOCGER=="2" .AND. SC5->C5_CATPV==GetMv("MV_CATPV")
+		If !Empty(SC5->C5_XNROACO) .AND. SC5->C5_XESACO=="S"
+ 	   		For nX := 1 To Len( aCols )
+      			If GdDeleted()
+         			Loop
+      			EndIf
+      		nTotal   += xMoeda( GdFieldGet('C6_VALOR', nX), M->C5_MOEDA, 1, dDataBase, 4, M->C5_TXMOEDA, 1 )
+        	Next   		
+   		
+   			If Inclui
+				SC5->C5_XTOTACO := nTotal
+				APROV()
+				Z01->(DbSetOrder(1))
+      			If Z01->(DbSeek(xFilial('Z01')+SC5->C5_XNROACO))
+         			RecLock('Z01',.F.)
+         			Replace Z01_STATUS With "4"
+         			MsUnLock()
+      			EndIf
+   			EndIf
+		Endif
+EndIf
+
+// Modificar el presupuesto a estado "ganado" cuando se confirma el pedido de venta
+// pedido por Esteban #134 - Nicolas Cirigliano 14/01/14
+
+if isincallstack("MATA416") //estoy efectivizando un presupuesto
+	RecLock('SCJ',.F.)
+    Replace CJ_XESTADO With "6" //pongo el presupuesto en ganado
+    MsUnLock()
+endif
+//-----------------------------------------------------------------------------------
+
+RestArea( aSC5 )
+RestArea( aSC6 )
+RestArea( aSC9 )
+RestArea( aSCJ )
+RestArea( aArea )
+
+Return                                        
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³alTraeDEsc   ºAutor  ³Microsiga           º Data ³  09/23/10º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³                                                            º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ AP                                                         º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+Static Function AlTraePed (CPedido)
+
+Local _aAreaSC5	:= SC5->(GetArea())
+Local aRet      := {}
+Local cMemo		:= ""
+Local cMemo2		:= ""
+
+DbselectArea("SC5")
+DbSetOrder(5)
+
+If dbseek(Xfilial("SC5")+ cPedido)     
+	cMemo := SC5->C5_XOBS1
+	cMemo2 := SC5->C5_XOBS2
+	aadd(aRet,{SC5->C5_XENDENT,SC5->C5_ENDENT,SC5->C5_FEC})
+
+EndIf 
+RestArea(_aAreaSC5)
+
+return (aRet)
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³alTraeDEsc   ºAutor  ³Microsiga           º Data ³  09/23/10º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³                                                            º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ AP                                                         º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+Static Function AlTraefac (Cfactura)
+
+Local _aAreaSF2	:= SF2->(GetArea())
+Local aRet      := {}
+
+	
+	aadd(aRet,{SC5->C5_XNROACO,SC5->C5_XESACO,SC5->C5_XTOTACO})
+
+
+return (aRet)   
+
+                
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³APROV   ºAutor  ³Microsiga             ºFecha ³  12/30/13   º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³ Aprobar pedidos comercialmente                             º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ AP                                                         º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+Static Function APROV()
+/*
+	Local aArea		:= GetArea()
+	Local nI		:= 0					//Contador
+	
+	//Recorrer la grilla y actualizar Cantidad Aprobada con Cantidad del PV	
+	For nI := 1 To Len(aCols)
+		aCols[nI, GdFieldPos("C6_QTDLIB")] := aCols[nI,GdFieldPos("C6_QTDVEN")]
+	Next nI                                  
+	RestArea(aArea)
+*/
+Return                                   
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³alTraeDEsc   ºAutor  ³Microsiga           º Data ³  09/23/10º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³                                                            º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ AP                                                         º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+Static Function AlTraePed2 (CPedido)
+
+Local _aAreaSC6	:= SC6->(GetArea())
+Local aRet      := {}
+
+		SC6->(DbSetOrder(1))
+   		SC6->(DbSeek(xFilial('SC6')+cpedido))
+
+   		While !SC6->(Eof()) .and. xFilial('SC6')+cpedido == SC6->C6_FILIAL+SC6->C6_NUM
+  				aadd(aRet,{SC6->C6_PRODUTO,SC6->C6_VALDESC,SC6->C6_DESCONT,SC6->C6_PRCVEN,SC6->C6_VALOR,SC6->C6_PRUNIT,SC6->C6_ENTREG,SC6->C6_DESCRI})
+    	SC6->(DbSkip())
+   		EndDo
+  
+RestArea(_aAreaSC6)
+
+return (aRet)      
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
+±±ºPrograma  ³alTraeDEsc   ºAutor  ³Microsiga           º Data ³  09/23/10º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºDesc.     ³                                                            º±±
+±±º          ³                                                            º±±
+±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
+±±ºUso       ³ AP                                                         º±±
+±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+*/
+
+Static Function AlTraePed1 (CPedido)
+
+Local _aAreaSC5	:= SC5->(GetArea())
+Local aRet      := {}
+
+DbselectArea("SC5")
+DbSetOrder(5)
+
+If dbseek(Xfilial("SC5")+ cPedido)     
+	
+	aadd(aRet,{SC5->C5_NUM}) //agregar encabezado
+
+EndIf 
+RestArea(_aAreaSC5)
+
+return (aRet)           

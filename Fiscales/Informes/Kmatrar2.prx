@@ -1,0 +1,1563 @@
+#INCLUDE "MATRAR2.ch"
+#INCLUDE "SIGAWIN.CH"
+#INCLUDE "RWMAKE.CH"
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณMATRAR2   บAutor  ณMS         บ Data ณ  06/01/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ SubDiario de IVA Ventas.                                   บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Livros Fiscais                                             บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+User Function KMATRAR2()
+
+Local nQ
+Local cPerg       	:= "MTRAR2"
+Local cString     	:= "SF3"
+
+Private CbTxt     :=""
+Private CbCont		:=""
+Private aTipos   	:= {}
+Private lTipos      := SX5->(DBSEEK(xFilial("SX5")+"SF"))
+Private aTotCFis    := {}
+Private aProvincia  := {}
+Private lProvincia  := SX5->(DBSEEK(xFilial("SX5")+"12"))
+Private aTotProv  	:= {}
+Private aProduto    := {}
+Private lProduto    := SX5->(DBSEEK(xFilial("SX5")+"02"))
+Private aTotTpProd	:= {}
+Private tamanho   	:= "G"
+Private limite    	:= 220
+Private titulo    	:= PADC(OemToAnsi(STR0001),74) //"Emisi๓n del Subdiario de IVA"
+Private cDesc1    	:= PADC(OemToAnsi(STR0002),74) //"Se solicitaran la fecha inicial y la fecha final para la emisi๓n"
+Private cDesc2    	:= PADC(OemToAnsi(STR0003),74) //"de los libros de IVA Vendas"
+Private cDesc3    	:= ""
+Private aReturn   	:= { OemToAnsi(STR0004), 1,OemToAnsi(STR0005), 1, 2, 1,"",1 } //"Especial"###"Administracion"
+Private lContinua 	:= .T.
+Private wnrel     	:= "U_MATRAR2"
+Private cPictVals 	:= "@E 999,999,999.99"
+Private cPictImp  	:= "@E 999,999.99"
+Private nLastKey	:=	0
+Private dDtIni, dDtFim
+Private nImpGravados,nNoGravados,nIvaNoInscri
+Private nPagina,cRazaoSoc,cCGC,nLin
+Private nSigno,nTipo,aMeses
+PRIVATE cEmpresa,cInscr,cCuit,cTitulo,_nMes,nCnt1
+PRIVATE nd,nLinRoda1,nLinRoda2,nLinRoda3,nLinRoda4,nLinRoda5
+PRIVATE nLinRoda1b,nLinRoda2b,nLinRoda3b,nLinIni,aDriver,nOpc, CFILTERUSER
+Private cIndexSf3
+
+PUBLIC dDataEnt
+PUBLIC aColImp:= { }
+
+PUBLIC nIndex
+// PUBLIC nQ
+PUBLIC cNotaAnt  := ""
+PUBLIC cChave
+PUBLIC cFiltro
+PUBLIC nValImp  := 0
+PUBLIC nValMerc := 0
+PUBLIC nValBrut := 0
+PUBLIC nQtLinCab:= 0
+PUBLIC nQtLinRes:= 0
+PUBLIC nRetIVA  := 0
+PUBLIC nCont    := 1
+// Local dEntAnt
+
+// VARIAVEIS COM OS SUB TOTAIS DOS CAMPOS DE IMPOSTOS, SEPARADOS POR TIPO DE DOCUMENTO
+// NF=FATURA  ND=NOTA DE DEBITO   NC=NOTA DE CREDITO
+PUBLIC nFVALMERC :=0, nDVALMERC :=0, nCVALMERC :=0
+PUBLIC nFValImp1 :=0, nDValImp1 :=0, nCValImp1 :=0
+PUBLIC nFValImp2 :=0, nDValImp2 :=0, nCValImp2 :=0
+PUBLIC nFValImp3 :=0, nDValImp3 :=0, nCValImp3 :=0
+PUBLIC nFValImp7 :=0, nDValImp7 :=0, nCValImp7 :=0
+PUBLIC nFValImp8 :=0, nDValImp8 :=0, nCValImp8 :=0
+PUBLIC nFValImp4 :=0, nDValImp4 :=0, nCValImp4 :=0
+PUBLIC nFValImp5 :=0, nDValImp5 :=0, nCValImp5 :=0
+PUBLIC nFValImp9 :=0, nDValImp9 :=0, nCValImp9 :=0
+PUBLIC nFRetIVA  :=0, nDRetIVA  :=0,  nCRetIVA :=0
+PUBLIC nFRetIBB  :=0, nDRetIBB  :=0,  nCRetIBB :=0
+PUBLIC nFExento  :=0, nDExento  :=0,  nCExento :=0
+PUBLIC nFImpTotal:=0,nDImpTotal :=0, nCImpTotal:=0
+
+// VARIAVEIS COM OS TOTAIS DOS CAMPOS DE IMPOSTOS, SEPARADOS POR TIPO DE DOCUMENTO
+// NTF=FATURA  NTD=NOTA DE DEBITO   NTC=NOTA DE CREDITO
+PUBLIC nTFVALMERC :=0, nTDVALMERC :=0, nTCVALMERC:=0
+PUBLIC nTFValImp1 :=0, nTDValImp1 :=0, nTCValImp1:=0
+PUBLIC nTFValImp2 :=0, nTDValImp2 :=0, nTCValImp2:=0
+PUBLIC nTFValImp3 :=0, nTDValImp3 :=0, nTCValImp3:=0
+PUBLIC nTFValImp7 :=0, nTDValImp7 :=0, nTCValImp7:=0
+PUBLIC nTFValImp8 :=0, nTDValImp8 :=0, nTCValImp8:=0
+PUBLIC nTFValImp4 :=0, nTDValImp4 :=0, nTCValImp4:=0
+PUBLIC nTFValImp5 :=0, nTDValImp5 :=0, nTCValImp5:=0
+PUBLIC nTFValImp9 :=0, nTDValImp9 :=0, nTCValImp9:=0
+PUBLIC nTFRetIVA  :=0, nTDRetIVA  :=0, nTCRetIVA:=0
+PUBLIC nTFRetIBB  :=0, nTDRetIBB  :=0, nTCRetIBB:=0
+PUBLIC nTFExento  :=0, nTDExento  :=0, nTCExento:=0
+PUBLIC nTFImpTotal:=0, nTDImpTotal:=0, nTCImpTotal:=0
+PUBLIC cAliasSF3     , lImpTDia := .F.
+PUBLIC cDocIni:= " " , cDocFim  :=" ", cSerAnt  := " ", cEspAnt := " "
+
+//Variaveis que acumularam os valores dos titulos serie B(Consumidores Finais) com vlr menor que 1000
+PUBLIC nRetIBB  := 0 , nVlMercB := 0 , nVlImp1B := 0
+PUBLIC nVlImp2B := 0 , nVlImp3B := 0 , nVlImp7B := 0
+PUBLIC nVlImp8B := 0 , nVlImp4B := 0 , nVlImp5B := 0
+PUBLIC nVlImp9B := 0 , nExentoB := 0 , nImpTotB := 0
+PUBLIC nRetIVAB := 0 , nRetIBBB := 0
+PUBLIC lImpB    := .F.
+
+Public dEntAnt
+/*
+** Variables utilizadas para levantar los datos de Facturas y Totales por lกnea de Impresion....
+*/
+PUBLIC _Especie
+PUBLIC _Serie
+PUBLIC _NFiscal
+PUBLIC _ClieFor
+PUBLIC _Loja
+PUBLIC _nValImp1 := 0
+PUBLIC _nValImp2 := 0
+PUBLIC _nValImp3 := 0
+PUBLIC _nValImp7 := 0
+PUBLIC _nValImp8 := 0
+PUBLIC _nValImp4 := 0
+PUBLIC _nValImp5 := 0
+PUBLIC _nValImp9 := 0
+PUBLIC _nExentas := 0
+
+/*
+ ***************************************************************************
+ * Array utilizado para la impresion de las columnas del informe.
+****************************************************************************
+*/
+Aadd( aColImp, 000 )
+Aadd( aColImp, 009 )
+Aadd( aColImp, 014 )
+Aadd( aColImp, 018 )
+Aadd( aColImp, 032 )
+Aadd( aColImp, 053 )
+Aadd( aColImp, 067 )
+Aadd( aColImp, 082 )
+Aadd( aColImp, 093 )
+Aadd( aColImp, 104 )//no 104
+Aadd( aColImp, 115 )//no 115
+Aadd( aColImp, 126 )//no 126
+Aadd( aColImp, 137 )//no 137
+Aadd( aColImp, 104 )//148
+Aadd( aColImp, 159 )//no 159
+Aadd( aColImp, 170 )//no 170
+Aadd( aColImp, 181 )//no 181
+Aadd( aColImp, 118 )//194
+Aadd( aColImp, 132 )//206
+
+If lTipos // Verifica se existe a Tabela SF(Tabela de Agentes Fiscais) no SX5 e monta o array com todas as chaves desse grupo.
+	SX5->(DBSEEK(xFilial("SX5")+"SF"))
+	While !SX5->(EOF()).And.SX5->X5_TABELA=="SF"
+		Aadd(aTipos,{SX5->X5_CHAVE,Alltrim(x5DESCri())})
+		SX5->(DbSkip())
+	Enddo
+	Aadd(aTipos,{"  ",OemToAnsi(STR0006)}) //"Tipo no Reg."
+	For nQ	:=	1 To len(aTipos)
+		Aadd(aTotCFis,{0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00})
+	Next
+Endif
+
+If lProvincia  // Verifica se existe a Tabela 12(Tabela de Zonas Fiscais) no SX5 e monta o array com todas as chaves desse grupo.
+	SX5->(DBSEEK(xFilial("SX5")+"12"))
+	While !SX5->(EOF()).And.SX5->X5_TABELA=="12"
+		Aadd(aProvincia,{SX5->X5_CHAVE,Alltrim(x5DESCri())})
+		SX5->(DbSkip())
+	Enddo
+	For nQ	:=	1 To len(aProvincia)
+		Aadd(aTotProv,{0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00})
+	Next
+Endif
+
+If lProduto // Verifica se existe a Tabela 02(Tabela de Tipos de Materiais) no SX5 e monta o array com todas as chaves desse grupo.
+	SX5->(DBSEEK(xFilial("SX5")+"02"))
+	While !SX5->(EOF()).And.SX5->X5_TABELA=="02"
+		Aadd(aProduto,{SX5->X5_CHAVE,Alltrim(x5DESCri())})
+		SX5->(DbSkip())
+	Enddo
+	For nQ	:=	1 To len(aProduto)
+		Aadd(aTotTPProd,{0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00})
+	Next
+Endif
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณVerifica as perguntas selecionadas   ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณVariaveis utilizadas para parametros    ณ
+//ณmv_par01             // Fecha desde     ณ
+//ณmv_par02             // Fecha hasta     ณ
+//ณmv_par03             // Incluir         ณ
+//ณmv_par04             // Estilo          ณ
+//ณmv_par05             // Sucursales      ณ
+//ณmv_par06             // Resumen         ณ
+//ณmv_par07             // Totales Diarios ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+AjustaSX1()
+Pergunte(cPerg,.F.)
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณ Envia controle para a funcao SETPRINTณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+wnrel:=SetPrint(cString,wnrel,cPerg,Titulo,cDesc1,cDesc2,cDesc3,.F.,"",.F.,Tamanho)
+
+dDtIni := Dtos(mv_par01)
+dDtFim := Dtos(mv_par02)
+
+If nLastKey == 27
+	Return
+Endif
+
+SetDefault(aReturn,cString)
+
+If nLastKey == 27
+   Return
+Endif
+
+cFilterUser:=aReturn[7]
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณVerifica Posicao do Formulario na Impressoraณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+VerImp()
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณInicio do Processamento do Relatorio. ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+#IFDEF WINDOWS
+	RptStatus({|| RptDetail()})
+#ENDIF
+
+dbSelectArea("SF3")
+dbClearFil()
+RetIndex( "SF3" )
+#IFNDEF TOP
+	FErase(cIndexSf3+OrdBagExt())
+#ENDIF
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณRptDetail บAutor  ณGilson da Silva     บ Data ณ  22/01/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Impressao da linha detalhe do relatorio                    บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Livros Fiscais                                             บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function RptDetail()
+
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณPrepara o SF3 para extracao dos dados  ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+dbSelectArea( "SF3" )
+#IFNDEF TOP
+   cAliasSF3 := "SF3"
+   cFiltro   := "F3_FILIAL=='" + mv_par05 + "'.AND.DTOS(F3_ENTRADA)>='" + dDtIni + "'.AND.DTOS(F3_ENTRADA)<='" + dDtFim + "'"
+	If mv_par03 == 1
+		cFiltro :=cFiltro + ".AND. EMPTY(F3_DTCANC)"
+	ElseIf mv_par03 == 2
+		cFiltro := cFiltro+ ".AND. !EMPTY(F3_DTCANC)"
+	EndIf
+	cFiltro := cFiltro + ".And. F3_TIPOMOV == 'V' .And. Alltrim(F3_ESPECIE) $ 'NF|NDC|NCC' .AND. ALLTRIM( F3_SERIE ) <> 'P' " //Movimenta็๖es de Vendas
+	cFiltro := cFiltro + " .And. !EMPTY(F3_CFO) " //FAS: PARA SACAR EIC REPETIDOS
+//	cFiltro := cFiltro + ".And. F3_TIPOMOV == 'V' .And. Alltrim(F3_ESPECIE) $ 'NF|NDC|NCC'" //Movimenta็๖es de Vendas
+	cChave:="F3_FILIAL+DTOS(F3_ENTRADA)+F3_SERIE+F3_NFISCAL+F3_CFO"
+	cIndexSf3 := CriaTrab(NIL,.F.)
+	IndRegua("SF3",cIndexSf3,cChave,,cFiltro,OemToAnsi(STR0007)) //"Filtrando registros..."
+	nIndex	:=	Retindex("SF3")
+	dbSelectArea("SF3")
+	dbSetIndex(cIndexSf3+OrdBagExt())
+	DbSetOrder(nIndex+1)
+#ELSE
+   cAliasSF3 := "SF3TMP"
+   If Select( (cAliasSF3) ) <> 0
+      DbSelectArea( (cAliasSF3) )
+      DbCloseArea( )
+	Endif
+   cQuery:= "SELECT * FROM " + RetSqlName( "SF3" ) + " " //  + (cAliasSF3) + " "
+   cQuery+= "WHERE F3_FILIAL = '"+mv_par05+"'  AND D_E_L_E_T_<>'*'"
+   cQuery+= " AND F3_ENTRADA >= '" + dDtIni + "'"
+   cQuery+= " AND F3_ENTRADA <= '" + dDtFim + "'"
+	If mv_par03 == 1
+      cQuery+= " AND F3_DTCANC = ' '"
+	ElseIf mv_par03 == 2
+      cQuery+= " AND F3_DTCANC <> ' '"
+	EndIf
+   cQuery += " AND F3_TIPOMOV = 'V'  AND  F3_ESPECIE IN ('NF','NDC','NCC') AND F3_SERIE <> 'P' " //Movimenta็๖es de Vendas
+	cQuery += " AND F3_CFO <> '' "  //FAS: PARA SACAR EIC REPETIDOS   
+//   cQuery += " AND F3_TIPOMOV = 'V'  AND  F3_ESPECIE IN ('NF','NDC','NCC')" //Movimenta็๖es de Vendas
+   cQuery += " ORDER BY F3_ENTRADA, F3_SERIE, F3_NFISCAL, F3_CFO "
+   cQuery := ChangeQuery( cQuery )
+	MsAguarde({|| dbUseArea(.T.,"TOPCONN",TCGenQry(,,cQuery),(cAliasSF3),.F.,.T.)},OemToAnsi(STR0007))  //"Selecionando Registros..."
+#ENDIF
+
+DbSelectArea(cAliasSF3)
+DbGoTop()
+nLin    := 60
+nPagina := 0
+nBottomPage:= 62
+
+If mv_par06 == 1
+	nQtLinRes := 9 // Qtde Linhas usadas qdo Imprime o resumo.
+EndIf
+
+SetRegua(LastRec())
+#IFNDEF TOP
+	dEntAnt:= CTOD("")
+#ELSE
+	dEntAnt:= ""
+#ENDIF
+SA1->( dbSetOrder( 1 ) )
+SF1->( dbSetOrder( 1 ) )
+SF2->( dbSetOrder( 1 ) )
+
+ cLNFAnt:=""
+
+
+While ( cAliasSF3)->( !Eof( ) )
+   // IncRegua()
+	IF lAbortPrint
+		@ 00,01 PSAY OemToAnsi(STR0008) //"** CANCELADO PELO OPERADOR **"
+		lContinua := .F.
+		Exit
+	Endif
+    cLNFAnt:=""
+   // If (cAliasSF3)->F3_ENTRADA <> dEntAnt
+   //    nQtLinCab := nQtLinRes + 4   // Qtde Linhas usadas qdo Imprimir o cabe็alho.
+   // EndIf
+
+   If nLin + 4  > nBottomPage // 62
+		If nPagina >= 1
+         RaR2TotPgTo( )    // Imprime TRASLADO a pagina siguiente
+         RAR2Cab( )        // Imprime Encabezado de Listado
+         RaR2TotPgFrom( )  // Imprime TRASLADO de pagina anterior
+		Else
+			RAR2Cab()   //Imprime o Cabecalho do relatorio
+		EndIf
+	EndIf
+
+   If mv_par07 == 1           // Si la Impresion de Totales por Dia es "Imprime", imprime el encabezado por fecha.
+      #IFNDEF TOP
+         @ nLin, 001 PSAY (cAliasSF3)->F3_ENTRADA
+      #ELSE
+         @ nLin, 001 PSAY CTOD((cAliasSF3)->(SUBSTR(( cAliasSF3 )->F3_ENTRADA,7,2)+"/"+SUBSTR(( cAliasSF3 )->F3_ENTRADA,5,2)+"/"+ ;
+                           SUBSTR(( cAliasSF3 )->F3_ENTRADA,3,2)))
+      #ENDIF
+      nLin  := nLin+1
+   Endif
+
+   //+--------------------------------------------------------------+
+	//ฆ Considera filtro do usuario                                  ฆ
+	//+--------------------------------------------------------------+
+   // If !Empty(cFilterUser).and.!(&cFilterUser)
+   //   (cAliasSF3)->(dbSkip())
+   //   Loop
+   // Endif
+
+   dEntAnt:= ( cAliasSF3 )->F3_ENTRADA
+
+   While ( cAliasSF3 )->F3_ENTRADA == dEntAnt
+
+      If nLin + 4  > nBottomPage // 62
+         If nPagina >= 1
+            RaR2TotPgTo( )    // Imprime TRASLADO a pagina siguiente
+            RAR2Cab( )        // Imprime Encabezado de Listado
+            RaR2TotPgFrom( )  // Imprime TRASLADO de pagina anterior
+         Else
+            RAR2Cab()   //Imprime o Cabecalho do relatorio
+         EndIf
+      EndIf
+
+      If ( SA1->( dbSeek( xFilial( "SA1" ) + (cAliasSF3)->F3_CLIEFOR + (cAliasSF3)->F3_LOJA ) ) )
+         cRazaoSoc := SubStr( SA1->A1_NOME, 1, 20 )
+         cCgc      := SA1->A1_CGC
+      Else
+         cRazaoSoc := Replicate( "*", 20 )
+         cCgc      := " "
+      EndIf
+
+      cControlNF := ( cAliasSF3 )->F3_ENTRADA + ( cAliasSF3 )->F3_TIPO + ( cAliasSF3 )->F3_NFISCAL + ( cAliasSF3 )->F3_SERIE
+      cControlNF += ( cAliasSF3 )->F3_CLIEFOR + ( cAliasSF3 )->F3_LOJA
+
+      //Control puesto para facturas anuladas //03/11/2004 Francisco Guerrero
+      IF cLNFAnt == cControlNF
+         ( cAliasSF3 )->( dbSkip( ) )
+         loop
+      ENDIF
+
+      If ( Alltrim( ( cAliasSF3 )->F3_ESPECIE ) == "NCC" )
+         // SF1->( dbSetOrder(1) )
+         SF1->( dbSeek( xFilial( "SF1" ) + (cAliasSF3)->F3_NFISCAL + (cAliasSF3)->F3_SERIE + (cAliasSF3)->F3_CLIEFOR + (cAliasSF3)->F3_LOJA ) )
+         nValmerc  := SF1->F1_VALMERC
+         nValBrut  := SF1->F1_VALBRUT
+         nSigno    := -1
+         nMoneda   := SF1->F1_MOEDA
+         nTXMoneda := SF1->F1_TXMOEDA
+      Else
+         // SF2->( dbSetOrder(1) )
+         SF2->( dbSeek( xFilial("SF2") + (cAliasSF3)->F3_NFISCAL + (cAliasSF3)->F3_SERIE + (cAliasSF3)->F3_CLIEFOR + (cAliasSF3)->F3_LOJA ) )
+         nValmerc  := SF2->F2_VALMERC
+         nValBrut  := SF2->F2_VALBRUT
+         nSigno    := 1
+         nMoneda   := SF2->F2_MOEDA
+         nTXMoneda := SF2->F2_TXMOEDA
+      EndIf
+      //18-08-2004 Se agrega porque en el caso de facturas en dolares no calcula bien el iva  y se debe agregar este campo como multiplicadordentro
+      // de la formula para el calculo de los impuestos
+      if ntxmoneda = 0 
+         ntxmoneda := 1 
+      endif
+            
+
+      // Si nMoneda es <> de 1, convierte los valores de nValmerc y nValBrut
+      If nMoneda > 1
+         nValMerc := nValMerc * nTXMoneda
+         nValBrut := nValBrut * nTXMoneda
+         If ( Alltrim( ( cAliasSF3 )->F3_ESPECIE ) == "NCC" )  
+             _nValImp1 +=  ( (SF1->F1_VALIMP1 * nTXMoneda )  * nSigno )
+             _nValImp2 +=  ( (SF1->F1_VALIMP2 * nTXMoneda )  * nSigno )
+             _nValImp3 +=  ( (SF1->F1_VALIMP3 * nTXMoneda )  * nSigno )
+             _nValImp7 +=  ( (SF1->F1_VALIMP7 * nTXMoneda )  * nSigno )
+             _nValImp8 +=  ( (SF1->F1_VALIMP8 * nTXMoneda )  * nSigno )
+             _nValImp4 +=  ( (SF1->F1_VALIMP4 * nTXMoneda )  * nSigno )
+             _nValImp5 +=  ( ( (SF1->F1_VALIMP5+SF1->F1_VALIMP6) * nTXMoneda  ) * nSigno )
+             _nValImp9 +=  ( (SF1->F1_VALIMP9 * nTXMoneda  )  * nSigno )             
+             
+             _nExentas +=  ( (( SF1->F1_VALBRUT - (SF1->F1_BASIMP1+SF1->F1_BASIMP2+;
+                           SF1->F1_BASIMP3+SF1->F1_VALIMP1+SF1->F1_VALIMP2+SF1->F1_VALIMP3+SF1->F1_VALIMP4+SF1->F1_VALIMP6) ) *nTXMoneda)* nSigno )
+         Else
+             _nValImp1 +=  ( (SF2->F2_VALIMP1 * nTXMoneda )  * nSigno )
+             _nValImp2 +=  ( (SF2->F2_VALIMP2 * nTXMoneda )  * nSigno )
+             _nValImp3 +=  ( (SF2->F2_VALIMP3 * nTXMoneda )  * nSigno )
+             _nValImp7 +=  ( (SF2->F2_VALIMP7 * nTXMoneda )  * nSigno )
+             _nValImp8 +=  ( (SF2->F2_VALIMP8 * nTXMoneda )  * nSigno )
+             _nValImp4 +=  ( (SF2->F2_VALIMP4 * nTXMoneda )  * nSigno )
+             _nValImp5 +=  ( ( (SF2->F2_VALIMP5+SF2->F2_VALIMP6) * nTXMoneda  ) * nSigno )
+             _nValImp9 +=  ( (SF2->F2_VALIMP9 * nTXMoneda  )  * nSigno )             
+             
+             _nExentas +=  ( (( SF2->F2_VALBRUT - (SF2->F2_BASIMP1+SF2->F2_BASIMP2+;
+                           SF2->F2_BASIMP3+SF2->F2_VALIMP1+SF2->F2_VALIMP2+SF2->F2_VALIMP3+SF2->F2_VALIMP4+SF2->F2_VALIMP6) ) *nTXMoneda)* nSigno )
+         EndIf
+      EndIf
+
+     // If Alltrim( ( cAliasSF3 )->F3_SERIE == "B" .And. mv_par08 == 1
+     //    Rar2CalcB
+     //    ( cAliasSF3 )->( DdSkip( ) )
+     //    Loop
+     // Endif
+
+     #IFNDEF TOP
+         @ nLin, aColImp[1] PSAY (cAliasSF3)->F3_ENTRADA
+      #ELSE
+         @ nLin, aColImp[1] PSAY CTOD((SUBSTR( (cAliasSF3)->F3_ENTRADA,7,2)+"/"+SUBSTR((cAliasSF3)->F3_ENTRADA,5,2)+"/"+ ;
+                                 SUBSTR((cAliasSF3)->F3_ENTRADA,3,2)))
+	  #ENDIF
+	  dEntAnt  := (cAliasSF3)->F3_ENTRADA
+	If (Alltrim((cAliasSF3)->F3_ESPECIE) == 'NF')
+		@ nLin,aColImp[2] PSAY 'FC'
+	EndIf
+	If (Alltrim((cAliasSF3)->F3_ESPECIE) == 'NCC')
+		@ nLin,aColImp[2] PSAY 'NC'
+	EndIf
+	If (Alltrim((cAliasSF3)->F3_ESPECIE) == 'NDC')
+		@ nLin,aColImp[2] PSAY 'ND'
+	EndIf	      
+      //@ nLin,aColImp[2] PSAY (cAliasSF3)->F3_ESPECIE
+      @ nLin,aColImp[3] PSAY (cAliasSF3)->F3_SERIE
+      @ nLin,aColImp[4] PSAY (cAliasSF3)->F3_NFISCAL               Picture "@R 9999-99999999"
+
+      //03/11/2004 Francisco Guerrero   Agregado para control de facturas anuladas
+      cLNFAnt:=( cAliasSF3 )->F3_ENTRADA + ( cAliasSF3 )->F3_TIPO + ( cAliasSF3 )->F3_NFISCAL + ( cAliasSF3 )->F3_SERIE + ;
+               ( cAliasSF3 )->F3_CLIEFOR + ( cAliasSF3 )->F3_LOJA 
+               
+      If !Empty( (cAliasSF3)->F3_DTCANC )
+         @ nLin,aColImp[5] + 4 PSAY OemToAnsi(STR0032)   //"A N U L A D A"
+         //Agregado el 03/11/2004
+         @ nLin,aColImp[ 7] PSAY 0    Picture cPictVals
+         @ nLin,aColImp[ 8] PSAY 0    Picture cPictImp
+         @ nLin,aColImp[ 9] PSAY 0    Picture cPictImp
+//FAS         @ nLin,aColImp[10] PSAY 0    Picture cPictImp
+//FAS         @ nLin,aColImp[11] PSAY 0    Picture cPictImp
+//FAS         @ nLin,aColImp[12] PSAY 0    Picture cPictImp
+//FAS         @ nLin,aColImp[13] PSAY 0    Picture cPictImp
+         @ nLin,aColImp[14] PSAY 0    Picture cPictImp
+//FAS         @ nLin,aColImp[15] PSAY 0    Picture cPictImp
+//FAS         @ nLin,aColImp[16] PSAY 0    Picture cPictImp
+//FAS         @ nLin,aColImp[17] PSAY 0    Picture cPictImp
+		 @ nLin,aColImp[18] PSAY 0    Picture cPictVals
+         @ nLin,aColImp[19] PSAY 0    Picture cPictVals
+         nLin ++
+         ( cAliasSF3 )->( dbSkip( ) )
+         loop
+      Endif
+
+      _Especie := ( cAliasSF3 )->F3_ESPECIE
+      _Serie   := ( cAliasSF3 )->F3_SERIE
+      _NFiscal := ( cAliasSF3 )->F3_NFISCAL
+      _ClieFor := ( cAliasSF3 )->F3_CLIEFOR
+      _Loja    := ( cAliasSF3 )->F3_LOJA
+
+      While  ( cAliasSF3 )->F3_ENTRADA + ( cAliasSF3 )->F3_TIPO + ( cAliasSF3 )->F3_NFISCAL + ( cAliasSF3 )->F3_SERIE + ;
+               ( cAliasSF3 )->F3_CLIEFOR + ( cAliasSF3 )->F3_LOJA == cControlNF
+             IF nMoneda = 1
+             _nValImp1 +=  ( (cAliasSF3 )->F3_VALIMP1  * nSigno )
+             _nValImp2 +=  ( (cAliasSF3 )->F3_VALIMP2  * nSigno )
+             _nValImp3 +=  ( (cAliasSF3 )->F3_VALIMP3  * nSigno )
+             _nValImp7 +=  ( (cAliasSF3 )->F3_VALIMP7  * nSigno )
+             _nValImp8 +=  ( (cAliasSF3 )->F3_VALIMP8  * nSigno )
+             _nValImp4 +=  ( (cAliasSF3 )->F3_VALIMP4  * nSigno )
+             _nValImp5 +=  ( ((cAliasSF3 )->F3_VALIMP5+( cAliasSF3 )->F3_VALIMP6 ) * nSigno )
+             _nValImp9 +=  ( (cAliasSF3 )->F3_VALIMP9  * nSigno )
+             _nExentas +=  ( (cAliasSF3 )->F3_EXENTAS  * nSigno )
+             ENDIF
+
+             ( cAliasSF3 )->( dbSkip( ) )
+             IncRegua( )
+
+      EndDo
+
+      @ nLin,aColImp[ 5] PSAY Subs(cRazaoSoc,1,20)                        Picture "@!"
+      @ nLin,aColImp[ 6] PSAY cCgc                                        Picture "@R 99-99999999-9"
+
+      If SF2->( FieldPos( "F2_TICKINI" ) ) > 0 .And. SF2->( FieldPos( "F2_TICKFIN" ) ) > 0
+         If  Len( Alltrim( SF2->F2_TICKINI ) ) > 0 .Or. Len( Alltrim( SF2->F2_TICKFIN ) ) > 0
+            nLin ++
+            @ nLin,aColImp[1]  PSAY  "P venta:"+SF2->F2_VEND1//Francisco Guerrero - 27/10/2004  Face II
+//            @ nLin,aColImp[2] PSAY "Desde Ticket: " + SF2->F2_TICKINI
+            @ nLin,PCol( ) + 02 PSAY "Desde Ticket: " + SF2->F2_TICKINI
+            @ nLin,PCol( ) + 02 PSAY "Hasta Ticket: " + SF2->F2_TICKFIN
+         Endif
+      EndIf
+
+      @ nLin,aColImp[ 7] PSAY IIF(_nExentas=0,(nValMerc  * nSigno),(nValMerc  * nSigno)- _nExentas )    Picture cPictVals    //Alfio 15/06/04 Elimina del Neto Gravado los valores exentos
+      @ nLin,aColImp[ 8] PSAY _nValImp1                                                               Picture cPictImp
+      @ nLin,aColImp[ 9] PSAY _nValImp2                                                               Picture cPictImp
+//FAS      @ nLin,aColImp[10] PSAY _nValImp3                                                               Picture cPictImp
+//FAS      @ nLin,aColImp[11] PSAY _nValImp7                                                               Picture cPictImp
+//FAS      @ nLin,aColImp[12] PSAY _nValImp8                                                               Picture cPictImp
+//FAS      @ nLin,aColImp[13] PSAY _nValImp4                                                               Picture cPictImp
+      @ nLin,aColImp[14] PSAY _nValImp5                                                               Picture cPictImp
+//FAS      @ nLin,aColImp[15] PSAY _nValImp9                                                               Picture cPictImp
+//FAS      @ nLin,aColImp[16] PSAY nRetIVA                                                                 Picture cPictImp
+//FAS      @ nLin,aColImp[17] PSAY nRetIBB                                                                 Picture cPictImp
+      @ nLin,aColImp[18] PSAY _nExentas                                                               Picture cPictVals
+      @ nLin,aColImp[19] PSAY (nValBrut  * nSigno)                                                    Picture cPictVals
+      nLin ++
+
+      Rar2CalcImp( )
+
+      _nValImp1:= _nValImp2:= _nValImp3:= _nValImp7:= _nValImp8:= _nValImp4:= _nValImp5:= _nValImp9:= _nExentas:= 0
+
+   EndDo
+
+   // If mv_par08 == 1
+   //   Rar2ImpB
+   // EndIf
+   Rar2TotDia( )
+
+EndDo
+
+IF Select(cAliasSF3) > 0 
+   DbSelectArea(cAliasSF3)
+   DbCloseArea()
+ENDIF
+
+If nLin + 4 > nBottomPage
+   Rar2TotPgTo( )
+   Rar2Cab( )
+   Rar2TotPgFrom( )
+   Rar2Total( )                        // Imprime Linea de Total Final del Libro de Compras
+Else
+   Rar2Total( )                        // Imprime Linea de Total Final del Libro de Compras
+EndIf
+/* Anulo FAS
+If nLin + 4 > nBottomPage
+   Rar2TotPgTo( )
+   Rar2Cab( )
+   Rar2TotPgFrom( )
+   RaR2TotPg( )                        // Imprime Totales por Tipo de Comprobantes
+Else
+   RaR2TotPg( )                        // Imprime Totales por Tipo de Comprobantes
+EndIf
+*/
+If mv_par06 == 1
+   Rar2Cab( )
+   RaR2Resumo( )  // Imprime o resumo do relatorio
+EndIf
+
+Set Device To Screen
+If aReturn[5] == 1
+	Set Printer TO
+	dbcommitAll()
+	ourspool(wnrel)
+Endif
+MS_FLUSH()
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณRAR2Cab   บAutor  ณGilson da Silva     บ Data ณ  22/01/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Cabecalho do Libro de IVA ( Vendas ).                      บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Livros Fiscais                                             บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function RAR2Cab()
+
+Local aDriver	:=	ReadDriver()
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณVariaveis utilizadas no cabecalhoณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+cTitulo    := OemToAnsi( STR0009 )              //"LIBRO DE  I.V.A. "
+cTitulo    := cTitulo + OemToAnsi( STR0010)     //"V E N T A S"
+cTitulo    := cTitulo + OemToAnsi( STR0026)     //" - Desde : "
+cTitulo    := cTitulo + DTOC( mv_par01 )
+cTitulo    := cTitulo + OemToAnsi( STR0027)     //"   Hasta : "
+cTitulo    := cTitulo + DTOC( mv_par02 )
+cEmpresa   := SM0->M0_NOMECOM
+cInscr     := InscrEst( )
+cCUIT    := TRANSFORM( SM0->M0_CGC,"@R 99-99999999-9" )
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณCabecalho para o Relatorio.  ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+nPagina := nPagina + 1
+@ 00,000 PSAY &(aDriver[5])
+@ 01,000 PSAY __PrtFatLine( )
+@ 02,000 PSAY OemToAnsi( STR0011 ) + cEmpresa //"Empresa: "
+@ 02,limite - 20 PSAY OemToAnsi( STR0012 ) +  StrZero( nPagina, 6 ) // "Pagina Nro.: 000001 "
+@ 03,000 PSAY "C.U.I.T. : " + cCUIT
+@ 03,( ( limite - Len( cTitulo ) ) /2 ) PSAY cTitulo
+@ 05,000 PSAY __PrtFatLine( )
+@ 06,000 PSAY OemToAnsi( STR0013 ) //" Fecha  Tipo Serie    Numero        Razon Social        C.U.I.T.         Neto       I.V.A.     I.V.A.     I.V.A.     I.V.A.      I.V.A.    PERCEP.    PERCEP.   PERCEP.    RETENCION  RETENCION              EXENTO          TOTAL   "
+@ 07,000 PSAY OemToAnsi( STR0033 ) //"                   Comprobante                                         Gravado       R.G.      R.N.I.    SERVICIOS  BS. CAP.      R.E.      I.V.A.     IIBB    GANANCIAS     I.V.A.     IIBB                                "
+/*
+ Fecha  Tipo Serie    Numero        Razon Social        C.U.I.T.         Neto       I.V.A.     I.V.A.     I.V.A.     I.V.A.      I.V.A.    PERCEP.    PERCEP.   PERCEP.    RETENCION  RETENCION             EXENTO          TOTAL
+                   Comprobante                                         Gravado       R.G.      R.N.I.    SERVICIOS  BS. CAP.      R.E.      I.V.A.     IIBB    GANANCIAS     I.V.A.     IIBB
+99/99/99 XXX  XX  999-999999999 XXXXXXXXXXXXXXXXXXXX 99-99999999-9 999,999,999.99 999,999.99 999,999.99 999,999.99 999,999.99 999,999.99 999,999.99 999,999.99 999,999.99 999,999.99 999,999.99   999,999.99   999,999,999.99
+
+012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567
+0         10        20        30        40        50        60        70        80        90        100       110       120       130       140       150       160       170       180       190       200       210       220       230       240       250
+*/
+@ 08,000 PSAY __PrtThinLine( )
+nLin := 9
+
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณRAR2TotDia  บAutor  ณGilson da Silva   บ Data ณ  22/01/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Rodape do Libro de IVA Vendas .                            บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Livros Fiscais                                             บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function RaR2TotDia( )
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+//ณDispara a funcao para impressao do Total do dia.   ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+lImpTDia	:= .T.  //Flag para controlar se imprimiu a quebra por dia
+
+If mv_par07 == 1
+
+   If nLin + 4 > nBottomPage // 55
+      If nPagina >= 1
+         RaR2TotPgTo( )        // Imprime TRASLADO a pagina siguiente
+         RAR2Cab( )            // Imprime Encabezado de Listado
+         RaR2TotPgFrom( )      // Imprime TRASLADO de pagina anterior
+      EndIf
+   EndIf
+
+   If nLin > 9
+      @ nLin,000 PSAY Replicate( ".", limite )
+      nLin ++
+   EndIf
+
+   @ nLin,000 Psay Replicate( ".", limite )
+   nLin ++
+   @ nLin,001 Psay " TOTALES DEL DIA: " + Substr( dEntAnt, 7, 2 ) + "/" + Substr( dEntAnt, 5, 2 ) + "/" + SubStr( dEntAnt, 1, 4 )
+
+   @ nLin,aColImp[ 7] Psay nFValMerc  + nDValMerc  + nCValMerc          Picture cPictVals
+   @ nLin,aColImp[ 8] Psay nFValImp1  + nDValImp1  + nCValImp1          Picture cPictImp
+   @ nLin,aColImp[ 9] Psay nFValImp2  + nDValImp2  + nCValImp2          Picture cPictImp
+//FAS   @ nLin,aColImp[10] Psay nFValImp3  + nDValImp3  + nCValImp3          Picture cPictImp
+//FAS   @ nLin,aColImp[11] Psay nFValImp7  + nDValImp7  + nCValImp7          Picture cPictImp
+//FAS   @ nLin,aColImp[12] Psay nFValImp8  + nDValImp8  + nCValImp8          Picture cPictImp
+//FAS   @ nLin,aColImp[13] Psay nFValImp4  + nDValImp4  + nCValImp4          Picture cPictImp
+   @ nLin,aColImp[14] Psay nFValImp5  + nDValImp5  + nCValImp5          Picture cPictImp
+//FAS   @ nLin,aColImp[15] Psay nFValImp9  + nDValImp9  + nCValImp9          Picture cPictImp
+//FAS   @ nLin,aColImp[16] Psay nFRetIVA   + nDRetIVA   + nCRetIVA           Picture cPictImp
+//FAS   @ nLin,aColImp[17] Psay nFRetIBB   + nDRetIBB   + nCRetIBB           Picture cPictImp
+   @ nLin,aColImp[18] Psay nFExento   + nDExento   + nCExento           Picture cPictVals
+   @ nLin,aColImp[19] Psay nFImpTotal + nDImpTotal + nCImpTotal         Picture cPictVals
+   nLin ++
+   @ nLin,000 Psay __PrtThinLine( )
+   nLin ++
+
+EnDif
+
+
+// pone cero en todas las variables de totalizacion por dia
+
+nFVALMERC := nFValImp1:= nFValImp2 :=  nFValImp3:=  nFValImp7 := nFValImp7 := nFValImp8 := 0
+nDVALMERC := nDValImp1:= nDValImp2 :=  nDValImp3:=  nDValImp7 := nDValImp7 := nDValImp8 := 0
+nCVALMERC := nCValImp1:= nCValImp2 :=  nCValImp3:=  nCValImp7 := nCValImp7 := nCValImp8 := 0
+
+nFValImp4 := nFValImp5 := nFValImp9 := nFRetIVA  := nFRetIBB  := nFExento  := nFImpTotal:= 0
+nDValImp4 := nDValImp5 := nDValImp9 := nDRetIVA  := nDRetIBB  := nDExento  := nDImpTotal:= 0
+nCValImp4 := nCValImp5 := nCValImp9 := nCRetIVA  := nCRetIBB  := nCExento  := nCImpTotal:= 0
+
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณRaR2TotPg   บAutor  ณGilson da Silva   บ Data ณ  22/01/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Totaliza pagina do Libro de IVA ( Vendas  ).              บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Livros Fiscais                                             บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function RaR2TotPg()
+
+nLin := nLin + 1
+@ nLin,015 PSAY OemToAnsi(STR0019) // "Totales por Tipo Tipo de Documento :"
+nLin := nLin + 1
+@ nLin,030 PSAY OemToAnsi(STR0016) //"Total Facturas           : "
+@ nLin,aColImp[ 7] PSAY nTFValMerc          Picture cPictVals
+@ nLin,aColImp[ 8] PSAY nTFValImp1          Picture cPictImp
+@ nLin,aColImp[ 9] PSAY nTFValImp2          Picture cPictImp
+//FAS@ nLin,aColImp[10] PSAY nTFValImp3          Picture cPictImp
+//FAS@ nLin,aColImp[11] PSAY nTFValImp7          Picture cPictImp
+//FAS@ nLin,aColImp[12] PSAY nTFValImp8          Picture cPictImp
+//FAS@ nLin,aColImp[13] PSAY nTFValImp4          Picture cPictImp
+@ nLin,aColImp[14] PSAY nTFValImp5          Picture cPictImp
+//FAS@ nLin,aColImp[15] PSAY nTFValImp9          Picture cPictImp
+//FAS@ nLin,aColImp[16] PSAY nTFRetIVA           Picture cPictImp
+//FAS@ nLin,aColImp[17] PSAY nTFRetIBB           Picture cPictImp
+@ nLin,aColImp[18] PSAY ntFExento           Picture cPictVals
+@ nLin,aColImp[19] PSAY nTFImpTotal         Picture cPictVals
+
+nLin := nLin +1
+@ nLin,030 PSAY OemToAnsi(STR0018) //"Total Notas de Debito    : "
+@ nLin,aColImp[ 7] PSAY nTDValMerc          Picture cPictVals
+@ nLin,aColImp[ 8] PSAY nTDValImp1          Picture cPictImp
+@ nLin,aColImp[ 9] PSAY nTDValImp2          Picture cPictImp
+//FAS@ nLin,aColImp[10] PSAY nTDValImp3          Picture cPictImp
+//FAS@ nLin,aColImp[11] PSAY nTDValImp7          Picture cPictImp
+//FAS@ nLin,aColImp[12] PSAY nTDValImp8          Picture cPictImp
+//FAS@ nLin,aColImp[13] PSAY nTDValImp4          Picture cPictImp
+@ nLin,aColImp[14] PSAY nTDValImp5          Picture cPictImp
+//FAS@ nLin,aColImp[15] PSAY nTDValImp9          Picture cPictImp
+//FAS@ nLin,aColImp[16] PSAY nTDRetIVA           Picture cPictImp
+//FAS@ nLin,aColImp[17] PSAY nTDRetIBB           Picture cPictImp
+@ nLin,aColImp[18] PSAY nTDExento           Picture cPictVals
+@ nLin,aColImp[19] PSAY nTDImpTotal         Picture cPictVals
+
+nLin := nLin +1
+@ nLin,030 PSAY OemToAnsi(STR0017) //"Total Notas de Credito   : "
+@ nLin,aColImp[ 7] PSAY nTCValMerc          Picture cPictVals
+@ nLin,aColImp[ 8] PSAY nTCValImp1          Picture cPictImp
+@ nLin,aColImp[ 9] PSAY nTCValImp2          Picture cPictImp
+//FAS@ nLin,aColImp[10] PSAY nTCValImp3          Picture cPictImp
+//FAS@ nLin,aColImp[11] PSAY nTCValImp7          Picture cPictImp
+//FAS@ nLin,aColImp[12] PSAY nTCValImp8          Picture cPictImp
+//FAS@ nLin,aColImp[13] PSAY nTCValImp4          Picture cPictImp
+@ nLin,aColImp[14] PSAY nTCValImp5          Picture cPictImp
+//FAS@ nLin,aColImp[15] PSAY nTCValImp9          Picture cPictImp
+//FAS@ nLin,aColImp[16] PSAY nTCRetIVA           Picture cPictImp
+//FAS@ nLin,aColImp[17] PSAY nTCRetIBB           Picture cPictImp
+@ nLin,aColImp[18] PSAY nTCExento           Picture cPictVals
+@ nLin,aColImp[19] PSAY nTCImpTotal         Picture cPictVals
+
+nLin := nLin + 2
+@ nLin,015 PSAY OemToAnsi(STR0014) //"Totales Generales :"
+nLin := nLin +1
+@ nLin,030 PSAY OemToAnsi(STR0029) //"Total General :"
+@ nLin,aColImp[ 7] PSAY (nTFValMerc+nTDValMerc+nTCValMerc)          Picture cPictVals
+@ nLin,aColImp[ 8] PSAY (nTFValImp1+nTDValImp1+nTCValImp1)          Picture cPictImp
+@ nLin,aColImp[ 9] PSAY (nTFValImp2+nTDValImp2+nTCValImp2)          Picture cPictImp
+//FAS@ nLin,aColImp[10] PSAY (nTFValImp3+nTDValImp3+nTCValImp3)          Picture cPictImp
+//FAS@ nLin,aColImp[11] PSAY (nTFValImp7+nTDValImp7+nTCValImp7)          Picture cPictImp
+//FAS@ nLin,aColImp[12] PSAY (nTFValImp8+nTDValImp8+nTCValImp8)          Picture cPictImp
+//FAS@ nLin,aColImp[13] PSAY (nTFValImp4+nTDValImp4+nTCValImp4)          Picture cPictImp
+@ nLin,aColImp[14] PSAY (nTFValImp5+nTDValImp5+nTCValImp5)          Picture cPictImp
+//FAS@ nLin,aColImp[15] PSAY (nTFValImp9+nTDValImp9+nTCValImp9)          Picture cPictImp
+//FAS@ nLin,aColImp[16] PSAY (nTFRetIVA+nTDRetIVA+nTCRetIVA)             Picture cPictImp
+//FAS@ nLin,aColImp[17] PSAY (nTFRetIBB+nTDRetIBB+nTCRetIBB)             Picture cPictImp
+@ nLin,aColImp[18] PSAY (nTFExento+nTDExento+nTCExento)             Picture cPictVals
+@ nLin,aColImp[19] PSAY (nTFImpTotal+nTDImpTotal+nTCImpTotal)       Picture cPictVals
+nLin := nLin +1
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณRaR2Resumo  บAutor  ณGilson da Silva   บ Data ณ  22/01/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Rodape do Libro de IVA ( Vendas  ).                        บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Livros Fiscais                                             บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function RaR2Resumo()
+
+Local nQtLinRes  	:= 0
+Local nX       		:= 0
+Local nD            := 0
+
+nCnt1 :=	1
+For nX:=1 To Len(aTotCFis)
+	If aTotCFis[nx,1] <> 0
+		nQtLinRes ++
+	EndIf
+Next nX
+nQtLinRes := nQtLinRes+nLin
+If nQtLinRes > 55
+	RAR2Cab()  //Imprime o Cabecalho do relatorio
+	nQtLinRes := 0
+EndIf
+If lTipos
+	For nD:=	1 to len(aTotCFis)
+      If aTotCFis[nD][1]  <> 0.00 .Or. aTotCFis[nD][2]  <> 0.00 .Or. aTotCFis[nD][3]  <> 0.00 .Or.;
+         aTotCFis[nD][4]  <> 0.00 .Or. aTotCFis[nD][5]  <> 0.00 .Or. aTotCFis[nD][6]  <> 0.00 .Or.;
+         aTotCFis[nD][7]  <> 0.00 .Or. aTotCFis[nD][8]  <> 0.00 .Or. aTotCFis[nD][9]  <> 0.00 .Or.;
+         aTotCFis[nD][10] <> 0.00 .Or. aTotCFis[nD][11] <> 0.00 .Or. aTotCFis[nD][12] <> 0.00 .Or.;
+			aTotCFis[nD][13] <> 0.00
+			If nCnt1==1
+				nLin := nLin +1
+				@nLin , 015 PSAY OemToAnsi(STR0015)  //"Totales por Condicion Fiscal "
+				nLin := nLin +1
+			Endif
+			nCnt1 ++
+         @nLin , 030 PSAY aTipos[nD][2]
+         @nLin , aColImp[ 7] PSAY Trans(aTotCFis[nD][1],cPictVals)
+         @nLin , aColImp[ 8] PSAY Trans(aTotCFis[nD][2],cPictImp)
+         @nLin , aColImp[ 9] PSAY Trans(aTotCFis[nD][3],cPictImp)
+//FAS         @nLin , aColImp[10] PSAY Trans(aTotCFis[nD][4],cPictImp)
+//FAS         @nLin , aColImp[11] PSAY Trans(aTotCFis[nD][5],cPictImp)
+//FAS         @nLin , aColImp[12] PSAY Trans(aTotCFis[nD][6],cPictImp)
+//FAS         @nLin , aColImp[13] PSAY Trans(aTotCFis[nD][7],cPictImp)
+         @nLin , aColImp[14] PSAY Trans(aTotCFis[nD][8],cPictImp)
+//FAS         @nLin , aColImp[15] PSAY Trans(aTotCFis[nD][9],cPictImp)
+//FAS         @nLin , aColImp[16] PSAY Trans(aTotCFis[nD][10],cPictImp)
+//FAS         @nLin , aColImp[17] PSAY Trans(aTotCFis[nD][11],cPictImp)
+         @nLin , aColImp[18] PSAY Trans(aTotCFis[nD][12],cPictVals)
+         @nLin , aColImp[19] PSAY Trans(aTotCFis[nD][13],cPictVals)
+			nLin := nLin +1
+		Endif
+	Next
+Endif
+
+// TOTALES POR ZONA FISCAL
+nQtLinRes := 2
+For nX:=1 To Len(aTotProv)
+	If aTotProv[nx,1] <> 0
+		nQtLinRes ++
+	EndIf
+Next nX
+nQtLinRes := nQtLinRes+nLin
+If nQtLinRes > 55
+	RAR2Cab()  //Imprime o Cabecalho do relatorio
+	nQtLinRes := 0
+EndIf
+nCnt1 :=	1
+If lProvincia
+	For nD:=	1 to len(aTotProv)
+      If aTotProv[nD][1]  <> 0.00 .Or. aTotProv[nD][2]  <> 0.00 .Or. aTotProv[nD][3]  <> 0.00 .Or. ;
+         aTotProv[nD][4]  <> 0.00 .Or. aTotProv[nD][5]  <> 0.00 .Or. aTotProv[nD][6]  <> 0.00 .Or. ;
+         aTotProv[nD][7]  <> 0.00 .Or. aTotProv[nD][8]  <> 0.00 .Or. aTotProv[nD][9]  <> 0.00 .Or. ;
+         aTotProv[nD][10] <> 0.00 .Or. aTotProv[nD][11] <> 0.00 .Or. aTotProv[nD][12] <> 0.00 .Or. ;
+			aTotProv[nD][13] <> 0.00
+			If nCnt1==1
+				nLin := nLin +1
+				@nLin , 015 PSAY OemToAnsi(STR0030)  //"Totales por Zona Fiscal "
+				nLin := nLin +1
+			Endif
+			nCnt1 ++
+			@nLin , 030 PSAY aProvincia [nD][2]
+         @nLin , aColImp[ 7] PSAY Trans(aTotProv[nD][1],cPictVals)
+         @nLin , aColImp[ 8] PSAY Trans(aTotProv[nD][2],cPictImp)
+         @nLin , aColImp[ 9] PSAY Trans(aTotProv[nD][3],cPictImp)
+//FAS         @nLin , aColImp[10] PSAY Trans(aTotProv[nD][4],cPictImp)
+//FAS         @nLin , aColImp[11] PSAY Trans(aTotProv[nD][5],cPictImp)
+//FAS         @nLin , aColImp[12] PSAY Trans(aTotProv[nD][6],cPictImp)
+//FAS         @nLin , aColImp[13] PSAY Trans(aTotProv[nD][7],cPictImp)
+         @nLin , aColImp[14] PSAY Trans(aTotProv[nD][8],cPictImp)
+//FAS         @nLin , aColImp[15] PSAY Trans(aTotProv[nD][9],cPictImp)
+//FAS         @nLin , aColImp[16] PSAY Trans(aTotProv[nD][10],cPictImp)
+//FAS         @nLin , aColImp[17] PSAY Trans(aTotProv[nD][11],cPictImp)
+         @nLin , aColImp[18] PSAY Trans(aTotProv[nD][12],cPictVals)
+         @nLin , aColImp[19] PSAY Trans(aTotProv[nD][13],cPictVals)
+			nLin := nLin +1
+		Endif
+	Next
+Endif
+
+// TOTALES POR TIPO DE PRODUTO
+nQtLinRes := 2
+For nX:=1 To Len( aTotTpProd )
+   If aTotTpProd[ nx,1 ] <> 0
+		nQtLinRes ++
+	EndIf
+Next nX
+nQtLinRes := nQtLinRes+nLin
+If nQtLinRes > 55
+	RAR2Cab()  //Imprime o Cabecalho do relatorio
+EndIf
+nCnt1 :=	1
+If lProduto
+   For nD:= 1 to len( aTotTpProd )
+      If aTotTpProd[nD][1]  <> 0.00 .Or. aTotTpProd[nD][2]  <> 0.00 .Or. aTotTpProd[nD][3]  <> 0.00 .Or. ;
+         aTotTpProd[nD][4]  <> 0.00 .Or. aTotTpProd[nD][5]  <> 0.00 .Or. aTotTpProd[nD][6]  <> 0.00 .Or. ;
+         aTotTpProd[nD][7]  <> 0.00 .Or. aTotTpProd[nD][8]  <> 0.00 .Or. aTotTpProd[nD][9]  <> 0.00 .Or. ;
+         aTotTpProd[nD][10] <> 0.00 .Or. aTotTpProd[nD][11] <> 0.00 .Or. aTotTpProd[nD][12] <> 0.00 .Or. ;
+			aTotTpProd[nD][13] <> 0.00
+			If nCnt1==1
+				nLin := nLin +1
+				@nLin , 015 PSAY OemToAnsi(STR0031)  //"Totales por Tipo de Producto "
+				nLin := nLin +1
+			Endif
+			nCnt1 ++
+         @nLin , 030 PSAY aProduto[nD][2]
+         @nLin , aColImp[ 7] PSAY Trans(aTotTpProd[nD][1],cPictVals)
+         @nLin , aColImp[ 8] PSAY Trans(aTotTpProd[nD][2],cPictImp)
+         @nLin , aColImp[ 9] PSAY Trans(aTotTpProd[nD][3],cPictImp)
+//FAS         @nLin , aColImp[10] PSAY Trans(aTotTpProd[nD][4],cPictImp)
+//FAS         @nLin , aColImp[11] PSAY Trans(aTotTpProd[nD][5],cPictImp)
+//FAS         @nLin , aColImp[12] PSAY Trans(aTotTpProd[nD][6],cPictImp)
+//FAS         @nLin , aColImp[13] PSAY Trans(aTotTpProd[nD][7],cPictImp)
+         @nLin , aColImp[14] PSAY Trans(aTotTpProd[nD][8],cPictImp)
+//FAS         @nLin , aColImp[15] PSAY Trans(aTotTpProd[nD][9],cPictImp)
+//FAS         @nLin , aColImp[16] PSAY Trans(aTotTpProd[nD][10],cPictImp)
+//FAS         @nLin , aColImp[17] PSAY Trans(aTotTpProd[nD][11],cPictImp)
+         @nLin , aColImp[18] PSAY Trans(aTotTpProd[nD][12],cPictVals)
+         @nLin , aColImp[19] PSAY Trans(aTotTpProd[nD][13],cPictVals)
+			nLin := nLin +1
+		Endif
+	Next
+Endif
+
+nLin := nLin +1
+
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณRaR2Total บAutor  ณDelgado Marcelo     บ Data ณ  05/05/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Imprime Linea de Total de IVA Compras                      บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Libros Fiscales                                            บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function RaR2Total( )
+
+@ nLin,000 PSAY __PrtThinLine( )
+nLin++
+@ nLin,015 PSAY OemToAnsi(" T O T A L   G E N E R A L "  )
+@ nLin,aColImp[ 7] PSAY ( nTFValMerc  + nTDValMerc  + nTCValMerc  )       Picture cPictVals
+@ nLin,aColImp[ 8] PSAY ( nTFValImp1  + nTDValImp1  + nTCValImp1  )       Picture cPictImp
+@ nLin,aColImp[ 9] PSAY ( nTFValImp2  + nTDValImp2  + nTCValImp2  )       Picture cPictImp
+//FAS@ nLin,aColImp[10] PSAY ( nTFValImp3  + nTDValImp3  + nTCValImp3  )       Picture cPictImp
+//FAS@ nLin,aColImp[11] PSAY ( nTFValImp7  + nTDValImp7  + nTCValImp7  )       Picture cPictImp
+//FAS@ nLin,aColImp[12] PSAY ( nTFValImp8  + nTDValImp8  + nTCValImp8  )       Picture cPictImp
+//FAS@ nLin,aColImp[13] PSAY ( nTFValImp4  + nTDValImp4  + nTCValImp4  )       Picture cPictImp
+@ nLin,aColImp[14] PSAY ( nTFValImp5  + nTDValImp5  + nTCValImp5  )       Picture cPictImp
+//FAS@ nLin,aColImp[15] PSAY ( nTFValImp9  + nTDValImp9  + nTCValImp9  )       Picture cPictImp
+//FAS@ nLin,aColImp[16] PSAY ( nTFRetIVA   + nTDRetIVA   + nTCRetIVA   )       Picture cPictImp
+//FAS@ nLin,aColImp[17] PSAY ( nTFRetIBB   + nTDRetIBB   + nTCRetIBB   )       Picture cPictImp
+@ nLin,aColImp[18] PSAY ( nTFExento   + nTDExento   + nTCExento   )       Picture cPictVals
+@ nLin,aColImp[19] PSAY ( nTFImpTotal + nTDImpTotal + nTCImpTotal )       Picture cPictVals
+nLin := nLin +1
+@ nLin,000 PSAY __PrtFatLine( )
+
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณ VerImp   บAutor  ณGilson da Silva     บ Data ณ  22/01/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Verifica posicionamento de papel na Impressora             บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Livros Fiscais                                             บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function VerImp()
+
+nLin:= 0                // Contador de Linhas
+nLinIni:=0
+aDriver:=ReadDriver()
+If aReturn[5]==2
+	nOpc       := 1
+	#IFNDEF WINDOWS
+		cCor       := "B/BG"
+	#ENDIF
+	While .T.
+
+		SetPrc(0,0)
+		dbCommitAll()
+
+		@ 00   ,000	PSAY aDriver[5]
+		@ nLin ,000 PSAY " "
+		@ nLin ,004 PSAY "*"
+		@ nLin ,022 PSAY "."
+
+		#IFNDEF WINDOWS
+			Set Device to Screen
+			DrawAdvWindow(OemToAnsi(STR0020),10,25,14,56) //" Formulario "
+			SetColor(cCor)
+			@ 12,27 Say OemToAnsi(STR0021) //"Formulario esta posicionado?"
+			nOpc:=Menuh({OemToAnsi(STR0022),OemToAnsi(STR0023),OemToAnsi(STR0024)},14,26,"b/w,w+/n,r/w","SNC","",1) //"Si"###"NO"###"Cancela la impresi๓n"
+			Set Device to Print
+		#ELSE
+			IF MsgYesNo(OemToAnsi(STR0021)) //"Fomulario esta posicionado ? "
+				nOpc := 1
+			ElseIF MsgYesNo(OemToAnsi(STR0025)) //"Tenta Novamente ? "
+				nOpc := 2
+			Else
+				nOpc := 3
+			Endif
+		#ENDIF
+
+		Do Case
+			Case nOpc==1
+				lContinua := .T.
+				Exit
+			Case nOpc==2
+				Loop
+			Case nOpc==3
+				lContinua := .F.
+				Return
+		EndCase
+	End
+Endif
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณ Rar2ImpB  บAutor  ณGilson da Silva    บ Data ณ  22/01/04   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Imprime os valores acumulados dos documentos Serie B (Con- บฑฑ
+ฑฑบ          ณ (sumidores finais)com valor de mercadoria menor que 1000.00บฑฑ                                                         บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ Livros Fiscais                                             บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function Rar2ImpB()
+
+@ nLin,001 PSAY cEspAnt             Picture "@!"
+@ nLin,007 PSAY cSerAnt             Picture "@!"
+@ nLin,013 PSAY OemToAnsi(STR0026)  //" - Desde : "
+@ nLin,024 PSAY cDocIni             Picture "@R 9999-99999999"
+@ nLin,039 PSAY OemToAnsi(STR0027)  //"   Hasta : "
+@ nLin,050 PSAY cDocFim             Picture "@R 9999-99999999"
+@ nLin,aColImp[ 7] PSAY nVlMercB            Picture cPictVals
+@ nLin,aColImp[ 8] PSAY nVlImp1B            Picture cPictImp
+@ nLin,aColImp[ 9] PSAY nVlImp2B            Picture cPictImp
+//FAS@ nLin,aColImp[10] PSAY nVlImp3B            Picture cPictImp
+//FAS@ nLin,aColImp[11] PSAY nVlImp7B            Picture cPictImp
+//FAS@ nLin,aColImp[12] PSAY nVlImp8B            Picture cPictImp
+//FAS@ nLin,aColImp[13] PSAY nVlImp4B            Picture cPictImp
+@ nLin,aColImp[14] PSAY nVlImp5B            Picture cPictImp
+//FAS@ nLin,aColImp[15] PSAY nVlImp9B            Picture cPictImp
+//FAS@ nLin,aColImp[16] PSAY nRetIVAB            Picture cPictImp
+//FAS@ nLin,aColImp[17] PSAY nRetIBBB            Picture cPictImp
+@ nLin,aColImp[18] PSAY nExentoB            Picture cPictVals
+@ nLin,aColImp[19] PSAY nImpTotB            Picture cPictVals
+
+nLin := nLin + 1
+
+cSerAnt := " "
+cEspAnt := " "
+cDocIni := " "
+cDocFim := " "
+lImpB   := .F.
+
+nFValMerc       += nVlMercB
+nTFVALMERC      += nVlMercB
+nFValImp1       += nVlImp1B
+nTFValImp1      += nVlImp1B
+nFValImp2       += nVlImp2B
+nTFValImp2      += nVlImp2B
+nFValImp3       += nVlImp3B
+nTFValImp3      += nVlImp3B
+nFValImp7       += nVlImp7B
+nTFValImp7      += nVlImp7B
+nFValImp8       += nVlImp8B
+nTFValImp8      += nVlImp8B
+nFValImp4       += nVlImp4B
+nTFValImp4      += nVlImp4B
+nFValImp5       += nVlImp5B
+nTFValImp5      += nVlImp5B
+nFValImp9       += nVlImp9B
+nTFValImp9      += nVlImp9B
+nFRetIVA        += nRetIVAB
+nTFRetIVA	    += nRetIVAB
+nFRetIBB        += nRetIBBB
+nTFRetIBB       += nRetIBBB
+nFExento        += nExentoB
+nTFExento       += nExentoB
+nFImpTotal      += nImpTotB
+nTFImpTotal     += nImpTotB
+
+nVlMercB := 0
+nVlImp1B := 0
+nVlImp2B := 0
+nVlImp3B := 0
+nVlImp7B := 0
+nVlImp8B := 0
+nVlImp4B := 0
+nVlImp5B := 0
+nVlImp9B := 0
+nExentoB := 0
+nImpTotB := 0
+
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณRaR2TotPgTo บAutor  ณChelo Delagdo       บ Data ณ  06/05/04   บฑฑ
+ฑฑฬออออออออออุออออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Imprime TRASLADO a pagina siguiente                          บฑฑ
+ฑฑบ          ณ                                                              บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ LIBROS FISCALES                                              บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function RaR2TotPgTo( )
+
+nLin ++
+@ nLin,000 PSAY __PrtThinLine( )
+nLin ++
+@ nLin,001 PSAY " T R A S L A D O    A   P A G I N A: " + StrZero( nPagina + 1, 6 )
+@ nLin,aColImp[ 7] PSAY ( nTFValMerc   + nTDValMerc  + nTCValMerc  )          Picture cPictVals
+@ nLin,aColImp[ 8] PSAY ( nTFValImp1   + nTDValImp1  + nTCValImp1  )          Picture cPictImp
+@ nLin,aColImp[ 9] PSAY ( nTFValImp2   + nTDValImp2  + nTCValImp2  )          Picture cPictImp
+//FAS@ nLin,aColImp[10] PSAY ( nTFValImp3   + nTDValImp3  + nTCValImp3  )          Picture cPictImp
+//FAS@ nLin,aColImp[11] PSAY ( nTFValImp7   + nTDValImp7  + nTCValImp7  )          Picture cPictImp
+//FAS@ nLin,aColImp[12] PSAY ( nTFValImp8   + nTDValImp8  + nTCValImp8  )          Picture cPictImp
+//FAS@ nLin,aColImp[13] PSAY ( nTFValImp4   + nTDValImp4  + nTCValImp4  )          Picture cPictImp
+@ nLin,aColImp[14] PSAY ( nTFValImp5   + nTDValImp5  + nTCValImp5  )          Picture cPictImp
+//FAS@ nLin,aColImp[15] PSAY ( nTFValImp9   + nTDValImp9  + nTCValImp9  )          Picture cPictImp
+//FAS@ nLin,aColImp[16] PSAY ( nTFRetIVA    + nTDRetIVA   + nTCRetIVA   )          Picture cPictImp
+//FAS@ nLin,aColImp[17] PSAY ( nTFRetIBB    + nTDRetIBB   + nTCRetIBB   )          Picture cPictImp
+@ nLin,aColImp[18] PSAY ( nTFExento    + nTDExento   + nTCExento   )          Picture cPictVals
+@ nLin,aColImp[19] PSAY ( nTFImpTotal  + nTDImpTotal + nTCImpTotal )          Picture cPictVals
+nLin ++
+@ nLin,000 PSAY __PrtFatLine( )
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัอออออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณRaR2TotPgFromบAutor  ณChelo Delagdo       บ Data ณ  06/05/04   บฑฑ
+ฑฑฬออออออออออุอออออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Imprime TRASLADO de pagina siguiente                          บฑฑ
+ฑฑบ          ณ                                                               บฑฑ
+ฑฑฬออออออออออุอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ LIBROS FISCALES                                               บฑฑ
+ฑฑศออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function RaR2TotPgFrom( )
+
+@ nLin,001 PSAY " T R A S L A D O   DE   P A G I N A: " + StrZero( nPagina - 1, 6 )
+@ nLin,aColImp[ 7] PSAY ( nTFValMerc   + nTDValMerc  + nTCValMerc  )          Picture cPictVals
+@ nLin,aColImp[ 8] PSAY ( nTFValImp1   + nTDValImp1  + nTCValImp1  )          Picture cPictImp
+@ nLin,aColImp[ 9] PSAY ( nTFValImp2   + nTDValImp2  + nTCValImp2  )          Picture cPictImp
+//FAS@ nLin,aColImp[10] PSAY ( nTFValImp3   + nTDValImp3  + nTCValImp3  )          Picture cPictImp
+//FAS@ nLin,aColImp[11] PSAY ( nTFValImp7   + nTDValImp7  + nTCValImp7  )          Picture cPictImp
+//FAS@ nLin,aColImp[12] PSAY ( nTFValImp8   + nTDValImp8  + nTCValImp8  )          Picture cPictImp
+//FAS@ nLin,aColImp[13] PSAY ( nTFValImp4   + nTDValImp4  + nTCValImp4  )          Picture cPictImp
+@ nLin,aColImp[14] PSAY ( nTFValImp5   + nTDValImp5  + nTCValImp5  )          Picture cPictImp
+//FAS@ nLin,aColImp[15] PSAY ( nTFValImp9   + nTDValImp9  + nTCValImp9  )          Picture cPictImp
+//FAS@ nLin,aColImp[16] PSAY ( nTFRetIVA    + nTDRetIVA   + nTCRetIVA   )          Picture cPictImp
+//FAS@ nLin,aColImp[17] PSAY ( nTFRetIBB    + nTDRetIBB   + nTCRetIBB   )          Picture cPictImp
+@ nLin,aColImp[18] PSAY ( nTFExento    + nTDExento   + nTCExento   )          Picture cPictVals
+@ nLin,aColImp[19] PSAY ( nTFImpTotal  + nTDImpTotal + nTCImpTotal )          Picture cPictVals
+nLin ++
+@ nLin,000 PSAY __PrtThinLine( )
+nLin ++
+
+Return
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัอออออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuncao    ณRaR2CalcImp  บAutor  ณChelo Delagdo       บ Data ณ  06/05/04   บฑฑ
+ฑฑฬออออออออออุอออออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Calcula los Totales de Impuestos y REsumen                    บฑฑ
+ฑฑบ          ณ                                                               บฑฑ
+ฑฑฬออออออออออุอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ LIBROS FISCALES                                               บฑฑ
+ฑฑศออออออออออฯอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function RaR2CalcImp( )
+
+If ( Alltrim(  _Especie ) == "NCC" ) //Acumula valores referente a Notas de Credito
+   nCValMerc       += IIF(_nExentas=0,(nValMerc  * nSigno),(nValMerc  * nSigno)-_nExentas )  //Alfio 15/06/04 Elimina del Neto Gravado los valores exentos
+   nTCVALMERC      += IIF(_nExentas=0,(nValMerc  * nSigno),(nValMerc  * nSigno)-_nExentas )  //Alfio 15/06/04 Elimina del Neto Gravado los valores exentos
+   nCValImp1       += _nValImp1  // * nSigno)
+   nTCValImp1      += _nValImp1  // * nSigno)
+   nCValImp2       += _nValImp2  // * nSigno)
+   nTCValImp2      += _nValImp2  // * nSigno)
+   nCValImp3       += _nValImp3  // * nSigno)
+   nTCValImp3      += _nValImp3  // * nSigno)
+   nCValImp7       += _nValImp7  // * nSigno)
+   nTCValImp7      += _nValImp7  // * nSigno)
+   nCValImp8       += _nValImp8  // * nSigno)
+   nTCValImp8      += _nValImp8  // * nSigno)
+   nCValImp4       += _nValImp4  // * nSigno)
+   nTCValImp4      += _nValImp4  // * nSigno)
+   nCValImp5       += _nValImp5  // * nSigno)
+   nTCValImp5      += _nValImp5  // * nSigno)
+   nCValImp9       += _nValImp9  // * nSigno)
+   nTCValImp9      += _nValImp9  // * nSigno)
+   nCRetIva        += nRetIVA
+   nTCRetIVA       += nRetIVA
+   nCRetIBB        += nRetIBB
+   nTCRetIBB       += nRetIBB
+   nCExento        += _nExentas //  * nSigno)
+   nTCExento       += _nExentas //  * nSigno)
+   nCImpTotal      += (nValBrut   * nSigno)
+   nTCImpTotal     += (nValBrut   * nSigno)
+ElseIf ( Alltrim( _Especie ) == "NDC" ) //Acumula  valores referente a Notas de Debito
+   nDValMerc       += IIF(_nExentas=0,(nValMerc  * nSigno),(nValMerc  * nSigno)-_nExentas )  //Alfio 15/06/04 Elimina del Neto Gravado los valores exentos
+   nTDVALMERC      += IIF(_nExentas=0,(nValMerc  * nSigno),(nValMerc  * nSigno)-_nExentas )  //Alfio 15/06/04 Elimina del Neto Gravado los valores exentos
+   nDValImp1       += _nValImp1  // * nSigno)
+   nTDValImp1      += _nValImp1  // * nSigno)
+   nDValImp2       += _nValImp2  // * nSigno)
+   nTDValImp2      += _nValImp2  // * nSigno)
+   nDValImp3       += _nValImp3  // * nSigno)
+   nTDValImp3      += _nValImp3  // * nSigno)
+   nDValImp7       += _nValImp7  // * nSigno)
+   nTDValImp7      += _nValImp7  // * nSigno)
+   nDValImp8       += _nValImp8  // * nSigno)
+   nTDValImp8      += _nValImp8  // * nSigno)
+   nDValImp4       += _nValImp4  // * nSigno)
+   nTDValImp4      += _nValImp4  // * nSigno)
+   nDValImp5       += _nValImp5  // * nSigno)
+   nTDValImp5      += _nValImp5  // * nSigno)
+   nDValImp9       += _nValImp9  // * nSigno)
+   nTDValImp9      += _nValImp9  // * nSigno)
+   nDRetIVA        += nRetIVA
+   nTDRetIVA       += nRetIVA
+   nDRetIBB        += nRetIBB
+   nTDRetIBB       += nRetIBB
+   nDExento        += _nExentas //  * nSigno)
+   nTDExento       += _nExentas //  * nSigno)
+   nDImpTotal      += (nValBrut   * nSigno)
+   nTDImpTotal     += (nValBrut   * nSigno)
+Else //Acumula valores referente a Notas Fiscais/Fatura
+   nFValMerc       += IIF(_nExentas=0,(nValMerc  * nSigno),(nValMerc  * nSigno)-_nExentas )  //Alfio 15/06/04 Elimina del Neto Gravado los valores exentos
+   nTFVALMERC      += IIF(_nExentas=0,(nValMerc  * nSigno),(nValMerc  * nSigno)-_nExentas )  //Alfio 15/06/04 Elimina del Neto Gravado los valores exentos
+   nFValImp1       += _nValImp1  // * nSigno)
+   nTFValImp1      += _nValImp1  // * nSigno)
+   nFValImp2       += _nValImp2  // * nSigno)
+   nTFValImp2      += _nValImp2  // * nSigno)
+   nFValImp3       += _nValImp3  // * nSigno)
+   nTFValImp3      += _nValImp3  // * nSigno)
+   nFValImp7       += _nValImp7  // * nSigno)
+   nTFValImp7      += _nValImp7  // * nSigno)
+   nFValImp8       += _nValImp8  // * nSigno)
+   nTFValImp8      += _nValImp8  // * nSigno)
+   nFValImp4       += _nValImp4  // * nSigno)
+   nTFValImp4      += _nValImp4  // * nSigno)
+   nFValImp5       += _nValImp5  // * nSigno)
+   nTFValImp5      += _nValImp5  // * nSigno)
+   nFValImp9       += _nValImp9  // * nSigno)
+   nTFValImp9      += _nValImp9  // * nSigno)
+   nFRetIVA        += nRetIVA
+   nTFRetIVA       += nRetIVA
+   nFRetIBB        += nRetIBB
+   nTFRetIBB       += nRetIBB
+   nFExento        += _nExentas //  * nSigno)
+   nTFExento       += _nExentas //  * nSigno)
+   nFImpTotal      += (nValBrut   * nSigno)
+   nTFImpTotal     += (nValBrut   * nSigno)
+EndIf
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤp
+//ณBusca y discrimina por tipo de cliente (Si esta cargada la tabla de tipos en el SX5).ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤp
+If lTipos       // Monta o resumo por Condicao Fiscal(Tipo de Proveedor)
+
+   If ( nTipo := AScan( aTipos,{ |X| alltrim(x[1]) == Alltrim( SA1->A1_TIPO ) } ) ) == 0
+      aTotCFis[ Len( aTotCFis ) ][  1 ]:= aTotCFis[ Len( aTotCFis ) ][  1 ] + IIF(_nExentas=0,(nValMerc  * nSigno),(nValMerc  * nSigno)-_nExentas )    // ( nSigno * nValMerc) //Alfio 15/06/04 Elimina del Neto Gravado los valores exentos
+      aTotCFis[ Len( aTotCFis ) ][  2 ]:= aTotCFis[ Len( aTotCFis ) ][  2 ] +  _nValImp1                // ( nSigno * (cAliasSF3)->F3_VALIMP1)
+      aTotCFis[ Len( aTotCFis ) ][  3 ]:= aTotCFis[ Len( aTotCFis ) ][  3 ] +  _nValImp2                // ( nSigno * (cAliasSF3)->F3_VALIMP2)
+      aTotCFis[ Len( aTotCFis ) ][  4 ]:= aTotCFis[ Len( aTotCFis ) ][  4 ] +  _nValImp3                // ( nSigno * (cAliasSF3)->F3_VALIMP3)
+      aTotCFis[ Len( aTotCFis ) ][  5 ]:= aTotCFis[ Len( aTotCFis ) ][  5 ] +  _nValImp7                // ( nSigno * (cAliasSF3)->F3_VALIMP7)
+      aTotCFis[ Len( aTotCFis ) ][  6 ]:= aTotCFis[ Len( aTotCFis ) ][  6 ] +  _nValImp8                // ( nSigno * (cAliasSF3)->F3_VALIMP8)
+      aTotCFis[ Len( aTotCFis ) ][  7 ]:= aTotCFis[ Len( aTotCFis ) ][  7 ] +  _nValImp4                // ( nSigno * (cAliasSF3)->F3_VALIMP4)
+      aTotCFis[ Len( aTotCFis ) ][  8 ]:= aTotCFis[ Len( aTotCFis ) ][  8 ] +  _nValImp5                // ( nSigno * ((cAliasSF3)->F3_VALIMP5+(cAliasSF3)->F3_VALIMP6))
+      aTotCFis[ Len( aTotCFis ) ][  9 ]:= aTotCFis[ Len( aTotCFis ) ][  9 ] +  _nValImp9                // ( nSigno * (cAliasSF3)->F3_VALIMP9)
+      aTotCFis[ Len( aTotCFis ) ][ 10 ]:= aTotCFis[ Len( aTotCFis ) ][ 10 ] + ( nSigno * nRetIVA   )    // ( nSigno * nRetIVA)
+      aTotCFis[ Len( aTotCFis ) ][ 11 ]:= aTotCFis[ Len( aTotCFis ) ][ 11 ] + ( nSigno * nRetIBB   )    // ( nSigno * nRetIBB)
+      aTotCFis[ Len( aTotCFis ) ][ 12 ]:= aTotCFis[ Len( aTotCFis ) ][ 12 ] +  _nExentas                // ( nSigno * (cAliasSF3)->F3_nExentas)
+      aTotCFis[ Len( aTotCFis ) ][ 13 ]:= aTotCFis[ Len( aTotCFis ) ][ 13 ] + ( nSigno * nValBrut  )    // ( nSigno * nValBrut)
+   Else
+      aTotCFis[ nTipo ][  1 ]:= aTotCFis[ nTipo ][  1 ] + IIF(_nExentas=0,(nValMerc  * nSigno),(nValMerc  * nSigno)-_nExentas )    // ( nSigno * nValMerc)  //Alfio 15/06/04 Elimina del Neto Gravado los valores exentos
+      aTotCFis[ nTipo ][  2 ]:= aTotCFis[ nTipo ][  2 ] +  _nValImp1                // ( nSigno * (cAliasSF3)->F3_VALIMP1)
+      aTotCFis[ nTipo ][  3 ]:= aTotCFis[ nTipo ][  3 ] +  _nValImp2                // ( nSigno * (cAliasSF3)->F3_VALIMP2)
+      aTotCFis[ nTipo ][  4 ]:= aTotCFis[ nTipo ][  4 ] +  _nValImp3                // ( nSigno * (cAliasSF3)->F3_VALIMP3)
+      aTotCFis[ nTipo ][  5 ]:= aTotCFis[ nTipo ][  5 ] +  _nValImp7                // ( nSigno * (cAliasSF3)->F3_VALIMP7)
+      aTotCFis[ nTipo ][  6 ]:= aTotCFis[ nTipo ][  6 ] +  _nValImp8                // ( nSigno * (cAliasSF3)->F3_VALIMP8)
+      aTotCFis[ nTipo ][  7 ]:= aTotCFis[ nTipo ][  7 ] +  _nValImp4                // ( nSigno * (cAliasSF3)->F3_VALIMP4)
+      aTotCFis[ nTipo ][  8 ]:= aTotCFis[ nTipo ][  8 ] +  _nValImp5                // ( nSigno * ((cAliasSF3)->F3_VALIMP5+(cAliasSF3)->F3_VALIMP6))
+      aTotCFis[ nTipo ][  9 ]:= aTotCFis[ nTipo ][  9 ] +  _nValImp9                // ( nSigno * (cAliasSF3)->F3_VALIMP9)
+      aTotCFis[ nTipo ][ 10 ]:= aTotCFis[ nTipo ][ 10 ] + ( nSigno * nRetIVA   )    // ( nSigno * nRetIVA)
+      aTotCFis[ nTipo ][ 11 ]:= aTotCFis[ nTipo ][ 11 ] + ( nSigno * nRetIBB   )    // ( nSigno * nRetIBB)
+      aTotCFis[ nTipo ][ 12 ]:= aTotCFis[ nTipo ][ 12 ] +  _nExentas                // ( nSigno * (cAliasSF3)->F3_nExentas)
+      aTotCFis[ nTipo ][ 13 ]:= aTotCFis[ nTipo ][ 13 ] + ( nSigno * nValBrut  )    // ( nSigno * nValBrut)
+   Endif
+Endif
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤp
+//ณBusca y discrimina por Provincia (Si esta cargada la tabla de Provincia en el SX5).  ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤp
+If lProvincia       // Monta o resumo por Provincia (UF do Proveedor )
+   If ( nTipo := AScan( aProvincia,{|X| alltrim(x[1])== Alltrim( SA1->A1_EST ) }) ) == 0
+      aTotProv[ Len( aTotProv ) ][  1 ]:= aTotProv[ Len( aTotProv ) ][  1 ] + IIF(_nExentas=0,(nValMerc  * nSigno),(nValMerc  * nSigno)-_nExentas )    // (nSigno *nValMerc) //Alfio 15/06/04 Elimina del Neto Gravado los valores exentos
+      aTotProv[ Len( aTotProv ) ][  2 ]:= aTotProv[ Len( aTotProv ) ][  2 ] +  _nValImp1                // (nSigno *(cAliasSF3)->F3_VALIMP1)
+      aTotProv[ Len( aTotProv ) ][  3 ]:= aTotProv[ Len( aTotProv ) ][  3 ] +  _nValImp2                // (nSigno *(cAliasSF3)->F3_VALIMP2)
+      aTotProv[ Len( aTotProv ) ][  4 ]:= aTotProv[ Len( aTotProv ) ][  4 ] +  _nValImp3                // (nSigno *(cAliasSF3)->F3_VALIMP3)
+      aTotProv[ Len( aTotProv ) ][  5 ]:= aTotProv[ Len( aTotProv ) ][  5 ] +  _nValImp7                // (nSigno *(cAliasSF3)->F3_VALIMP7)
+      aTotProv[ Len( aTotProv ) ][  6 ]:= aTotProv[ Len( aTotProv ) ][  6 ] +  _nValImp8                // (nSigno *(cAliasSF3)->F3_VALIMP8)
+      aTotProv[ Len( aTotProv ) ][  7 ]:= aTotProv[ Len( aTotProv ) ][  7 ] +  _nValImp4                // (nSigno *(cAliasSF3)->F3_VALIMP4)
+      aTotProv[ Len( aTotProv ) ][  8 ]:= aTotProv[ Len( aTotProv ) ][  8 ] +  _nValImp5                // (nSigno *((cAliasSF3)->F3_VALIMP5+(cAliasSF3)->F3_VALIMP6))
+      aTotProv[ Len( aTotProv ) ][  9 ]:= aTotProv[ Len( aTotProv ) ][  9 ] +  _nValImp9                // (nSigno *(cAliasSF3)->F3_VALIMP9)
+      aTotProv[ Len( aTotProv ) ][ 10 ]:= aTotProv[ Len( aTotProv ) ][ 10 ] + ( nSigno * nRetIVA   )    // (nSigno *nRetIVA)
+      aTotProv[ Len( aTotProv ) ][ 11 ]:= aTotProv[ Len( aTotProv ) ][ 11 ] + ( nSigno * nRetIBB   )    // (nSigno *nRetIBB)
+      aTotProv[ Len( aTotProv ) ][ 12 ]:= aTotProv[ Len( aTotProv ) ][ 12 ] +  _nExentas                // (nSigno*(cAliasSF3)->F3_nExentas)
+      aTotProv[ Len( aTotProv ) ][ 13 ]:= aTotProv[ Len( aTotProv ) ][ 13 ] + ( nSigno * nValBrut  )    // (nSigno *nValBrut)
+   Else
+      aTotProv[ nTipo ][  1 ]:= aTotProv[ nTipo ][  1 ] + IIF(_nExentas=0,(nValMerc  * nSigno),(nValMerc  * nSigno)-_nExentas )    // (nSigno *nValMerc)  //Alfio 15/06/04 Elimina del Neto Gravado los valores exentos
+      aTotProv[ nTipo ][  2 ]:= aTotProv[ nTipo ][  2 ] +  _nValImp1                // (nSigno *(cAliasSF3)->F3_VALIMP1)
+      aTotProv[ nTipo ][  3 ]:= aTotProv[ nTipo ][  3 ] +  _nValImp2                // (nSigno *(cAliasSF3)->F3_VALIMP2)
+      aTotProv[ nTipo ][  4 ]:= aTotProv[ nTipo ][  4 ] +  _nValImp3                // (nSigno *(cAliasSF3)->F3_VALIMP3)
+      aTotProv[ nTipo ][  5 ]:= aTotProv[ nTipo ][  5 ] +  _nValImp7                // (nSigno *(cAliasSF3)->F3_VALIMP7)
+      aTotProv[ nTipo ][  6 ]:= aTotProv[ nTipo ][  6 ] +  _nValImp8                // (nSigno *(cAliasSF3)->F3_VALIMP8)
+      aTotProv[ nTipo ][  7 ]:= aTotProv[ nTipo ][  7 ] +  _nValImp4                // (nSigno *(cAliasSF3)->F3_VALIMP4)
+      aTotProv[ nTipo ][  8 ]:= aTotProv[ nTipo ][  8 ] +  _nValImp5                // (nSigno *((cAliasSF3)->F3_VALIMP5+(cAliasSF3)->F3_VALIMP6))
+      aTotProv[ nTipo ][  9 ]:= aTotProv[ nTipo ][  9 ] +  _nValImp9                // (nSigno *(cAliasSF3)->F3_VALIMP9)
+      aTotProv[ nTipo ][ 10 ]:= aTotProv[ nTipo ][ 10 ] + ( nSigno * nRetIVA   )    // (nSigno *nRetIVA)
+      aTotProv[ nTipo ][ 11 ]:= aTotProv[ nTipo ][ 11 ] + ( nSigno * nRetIBB   )    // (nSigno *nRetIBB)
+      aTotProv[ nTipo ][ 12 ]:= aTotProv[ nTipo ][ 12 ] +  _nExentas                // (nSigno *(cAliasSF3)->F3_nExentas)
+      aTotProv[ nTipo ][ 13 ]:= aTotProv[ nTipo ][ 13 ] + ( nSigno * nValBrut  )    // (nSigno *nValBrut)
+   Endif
+Endif
+
+//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤp
+//ณBusca y discrimina por Tipo de Produto (Si esta cargada la tabla de Tipo Materiales en el SX5).  ณ
+//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤp
+
+If lProduto
+   If Alltrim( _Especie ) !="NCC" 
+      SD2->( dbSetOrder(3) )
+      SD2->( dbSeek( xFilial("SD2") + _NFiscal + _Serie + _ClieFor + _Loja ) )
+      While SD2->( !Eof( ) ) .And. SD2->D2_FILIAL+SD2->D2_DOC+SD2->D2_SERIE+SD2->D2_CLIENTE+SD2->D2_LOJA ==;
+         xFilial("SD2") + _NFiscal + _Serie + _ClieFor + _Loja
+
+         SFC->( DbSetOrder( 1 ) )
+         SFC->( DbSeek( xFilial( 'SFC' ) + SD2->D2_TES )  )
+
+         nValImp := (nSigno *(SD2->D2_VALIMP1+SD2->D2_VALIMP2+SD2->D2_VALIMP3+SD2->D2_VALIMP7+;
+         SD2->D2_VALIMP8+SD2->D2_VALIMP4+SD2->D2_VALIMP5+SD2->D2_VALIMP6+SD2->D2_VALIMP9))
+         nValBrut:= (nSigno *SD2->D2_TOTAL+SD2->D2_VALFRE+SD2->D2_SEGURO+SD2->D2_DESPESA)
+         nValBrut := nValBrut + nValImp
+         nValBrut := nValBrut * nTXMoneda
+         If ( nTipo := AScan( aProduto,{|X| alltrim(x[1])==Alltrim(SD2->D2_TP) }) ) == 0
+            aTotTPProd[ Len( aTotTPProd ) ][  1 ]:= aTotTPProd[ Len( aTotTPProd ) ][  1 ] + IF( SFC->(FOUND()), ( nSigno * ( SD2->D2_TOTAL * nTXMoneda  ) ), 0 )
+            aTotTPProd[ Len( aTotTPProd ) ][  2 ]:= aTotTPProd[ Len( aTotTPProd ) ][  2 ] + ( nSigno * ( SD2->D2_VALIMP1 * nTXMoneda ) )
+            aTotTPProd[ Len( aTotTPProd ) ][  3 ]:= aTotTPProd[ Len( aTotTPProd ) ][  3 ] + ( nSigno * ( SD2->D2_VALIMP2 * nTXMoneda ) )
+            aTotTPProd[ Len( aTotTPProd ) ][  4 ]:= aTotTPProd[ Len( aTotTPProd ) ][  4 ] + ( nSigno * ( SD2->D2_VALIMP3 * nTXMoneda ) )
+            aTotTPProd[ Len( aTotTPProd ) ][  5 ]:= aTotTPProd[ Len( aTotTPProd ) ][  5 ] + ( nSigno * ( SD2->D2_VALIMP7 * nTXMoneda ) )
+            aTotTPProd[ Len( aTotTPProd ) ][  6 ]:= aTotTPProd[ Len( aTotTPProd ) ][  6 ] + ( nSigno * ( SD2->D2_VALIMP8 * nTXMoneda ) )
+            aTotTPProd[ Len( aTotTPProd ) ][  7 ]:= aTotTPProd[ Len( aTotTPProd ) ][  7 ] + ( nSigno * ( SD2->D2_VALIMP4 * nTXMoneda ) )
+            aTotTPProd[ Len( aTotTPProd ) ][  8 ]:= aTotTPProd[ Len( aTotTPProd ) ][  8 ] + ( nSigno * ( (SD2->D2_VALIMP5+SD2->D2_VALIMP6) * nTXMoneda ) )
+            aTotTPProd[ Len( aTotTPProd ) ][  9 ]:= aTotTPProd[ Len( aTotTPProd ) ][  9 ] + ( nSigno * ( SD2->D2_VALIMP9 * nTXMoneda ) )
+            aTotTPPROD[ Len( aTotTPPROD ) ][ 10 ]:= aTotTPProd[ Len( aTotTPProd ) ][ 10 ] + ( nSigno * nRetIVA )
+            aTotTPProd[ Len( aTotTPProd ) ][ 11 ]:= aTotTPProd[ Len( aTotTPProd ) ][ 11 ] + ( nSigno * nRetIBB )
+            aTotTPProd[ Len( aTotTPProd ) ][ 12 ]:= aTotTPProd[ Len( aTotTPProd ) ][ 12 ] + IF( !SFC->(FOUND()), ( nSigno * ( SD2->D2_TOTAL * nTXMoneda  ) ), 0 )
+            aTotTPProd[ Len( aTotTPProd ) ][ 13 ]:= aTotTPProd[ Len( aTotTPProd ) ][ 13 ] + nValBrut
+         Else
+            aTotTPProd[ nTipo ][  1 ]:= aTotTPProd[ nTipo ][  1 ] + IF( SFC->(FOUND()), ( nSigno * ( SD2->D2_TOTAL * nTXMoneda  ) ), 0 )
+            aTotTPProd[ nTipo ][  2 ]:= aTotTPProd[ nTipo ][  2 ] + ( nSigno * ( SD2->D2_VALIMP1 * nTXMoneda ) )
+            aTotTPProd[ nTipo ][  3 ]:= aTotTPProd[ nTipo ][  3 ] + ( nSigno * ( SD2->D2_VALIMP2 * nTXMoneda ) )
+            aTotTPProd[ nTipo ][  4 ]:= aTotTPProd[ nTipo ][  4 ] + ( nSigno * ( SD2->D2_VALIMP3 * nTXMoneda ) )
+            aTotTPProd[ nTipo ][  5 ]:= aTotTPProd[ nTipo ][  5 ] + ( nSigno * ( SD2->D2_VALIMP7 * nTXMoneda ) )
+            aTotTPProd[ nTipo ][  6 ]:= aTotTPProd[ nTipo ][  6 ] + ( nSigno * ( SD2->D2_VALIMP8 * nTXMoneda ) )
+            aTotTPProd[ nTipo ][  7 ]:= aTotTPProd[ nTipo ][  7 ] + ( nSigno * ( SD2->D2_VALIMP4 * nTXMoneda ) )
+            aTotTPProd[ nTipo ][  8 ]:= aTotTPProd[ nTipo ][  8 ] + ( nSigno * ( (SD2->D2_VALIMP5+SD2->D2_VALIMP6) * nTXMoneda ) )
+            aTotTPProd[ nTipo ][  9 ]:= aTotTPProd[ nTipo ][  9 ] + ( nSigno * ( SD2->D2_VALIMP9 * nTXMoneda ) )
+            aTotTPProd[ nTipo ][ 10 ]:= aTotTPProd[ nTipo ][ 10 ] + ( nSigno * nRetIVA )
+            aTotTPProd[ nTipo ][ 11 ]:= aTotTPProd[ nTipo ][ 11 ] + ( nSigno * nRetIBB )
+            aTotTPProd[ nTipo ][ 12 ]:= aTotTPProd[ nTipo ][ 12 ] + IF( !SFC->(FOUND()), ( nSigno * ( SD2->D2_TOTAL * nTXMoneda  ) ), 0 )
+            aTotTPProd[ nTipo ][ 13 ]:= aTotTPProd[ nTipo ][ 13 ] +  nValBrut
+         Endif
+         SD2->( DbSkip( ) )
+      End
+   Else
+      SD1->( dbSetOrder(1) )
+      SD1->( dbSeek( xFilial("SD1") + _NFiscal + _Serie + _ClieFor + _Loja ) )
+      While SD1->( !Eof( ) ) .And. SD1->D1_FILIAL+SD1->D1_DOC+SD1->D1_SERIE+SD1->D1_FORNECE+SD1->D1_LOJA ==;
+         xFilial("SD1") + _NFiscal + _Serie + _ClieFor + _Loja
+
+         SFC->( DbSetOrder( 1 ) )
+         SFC->( DbSeek( xFilial( 'SFC' ) + SD1->D1_TES ) )
+
+         nValImp := ( nSigno * ( SD1->D1_VALIMP1 + SD1->D1_VALIMP2 + SD1->D1_VALIMP3 + SD1->D1_VALIMP7 + ;
+         SD1->D1_VALIMP8 + SD1->D1_VALIMP4 + SD1->D1_VALIMP5 + SD1->D1_VALIMP6 + SD1->D1_VALIMP9 ) )
+         nValBrut:= ( nSigno * SD1->D1_TOTAL + SD1->D1_VALFRE + SD1->D1_SEGURO + SD1->D1_DESPESA )
+         nValBrut := nValBrut + nValImp
+         nValBrut := nValBrut * nTXMoneda
+         If ( nTipo := AScan( aProduto,{|X| alltrim(x[1])==Alltrim(SD1->D1_TP) }) ) == 0
+            aTotTPProd[ Len( aTotTPProd ) ][  1 ]:= aTotTPProd[ Len( aTotTPProd ) ][  1 ] + IF( SFC->(FOUND()), ( nSigno * ( SD2->D2_TOTAL * nTXMoneda  ) ), 0 )
+            aTotTPProd[ Len( aTotTPProd ) ][  2 ]:= aTotTPProd[ Len( aTotTPProd ) ][  2 ] + ( nSigno * ( SD1->D1_VALIMP1 * nTXMoneda ) )
+            aTotTPProd[ Len( aTotTPProd ) ][  3 ]:= aTotTPProd[ Len( aTotTPProd ) ][  3 ] + ( nSigno * ( SD1->D1_VALIMP2 * nTXMoneda ) )
+            aTotTPProd[ Len( aTotTPProd ) ][  4 ]:= aTotTPProd[ Len( aTotTPProd ) ][  4 ] + ( nSigno * ( SD1->D1_VALIMP3 * nTXMoneda ) )
+            aTotTPProd[ Len( aTotTPProd ) ][  5 ]:= aTotTPProd[ Len( aTotTPProd ) ][  5 ] + ( nSigno * ( SD1->D1_VALIMP7 * nTXMoneda ) )
+            aTotTPProd[ Len( aTotTPProd ) ][  6 ]:= aTotTPProd[ Len( aTotTPProd ) ][  6 ] + ( nSigno * ( SD1->D1_VALIMP8 * nTXMoneda ) )
+            aTotTPProd[ Len( aTotTPProd ) ][  7 ]:= aTotTPProd[ Len( aTotTPProd ) ][  7 ] + ( nSigno * ( SD1->D1_VALIMP4 * nTXMoneda ) )
+            aTotTPProd[ Len( aTotTPProd ) ][  8 ]:= aTotTPProd[ Len( aTotTPProd ) ][  8 ] + ( nSigno * ( (SD1->D1_VALIMP5+SD1->D1_VALIMP6) * nTXMoneda ) )
+            aTotTPProd[ Len( aTotTPProd ) ][  9 ]:= aTotTPProd[ Len( aTotTPProd ) ][  9 ] + ( nSigno * ( SD1->D1_VALIMP9 * nTXMoneda ) )
+            aTotTPPROD[ Len( aTotTPPROD ) ][ 10 ]:= aTotTPProd[ Len( aTotTPProd ) ][ 10 ] + ( nSigno * nRetIVA )
+            aTotTPProd[ Len( aTotTPProd ) ][ 11 ]:= aTotTPProd[ Len( aTotTPProd ) ][ 11 ] + ( nSigno * nRetIBB )
+            aTotTPProd[ Len( aTotTPProd ) ][ 12 ]:= aTotTPProd[ Len( aTotTPProd ) ][ 12 ] + IF( !SFC->(FOUND()), ( nSigno * ( SD2->D2_TOTAL * nTXMoneda  ) ), 0 )
+            aTotTPProd[ Len( aTotTPProd ) ][ 13 ]:= aTotTPProd[ Len( aTotTPProd ) ][ 13 ] +  nValBrut
+         Else
+            aTotTPProd[ nTipo ][  1 ]:= aTotTPProd[ nTipo ][  1 ] + IF( SFC->(FOUND()), ( nSigno * ( SD2->D2_TOTAL * nTXMoneda  ) ), 0 )
+            aTotTPProd[ nTipo ][  2 ]:= aTotTPProd[ nTipo ][  2 ] + ( nSigno * ( SD1->D1_VALIMP1 * nTXMoneda ) )
+            aTotTPProd[ nTipo ][  3 ]:= aTotTPProd[ nTipo ][  3 ] + ( nSigno * ( SD1->D1_VALIMP2 * nTXMoneda ) )
+            aTotTPProd[ nTipo ][  4 ]:= aTotTPProd[ nTipo ][  4 ] + ( nSigno * ( SD1->D1_VALIMP3 * nTXMoneda ) )
+            aTotTPProd[ nTipo ][  5 ]:= aTotTPProd[ nTipo ][  5 ] + ( nSigno * ( SD1->D1_VALIMP7 * nTXMoneda ) )
+            aTotTPProd[ nTipo ][  6 ]:= aTotTPProd[ nTipo ][  6 ] + ( nSigno * ( SD1->D1_VALIMP8 * nTXMoneda ) )
+            aTotTPProd[ nTipo ][  7 ]:= aTotTPProd[ nTipo ][  7 ] + ( nSigno * ( SD1->D1_VALIMP4 * nTXMoneda ) )
+            aTotTPProd[ nTipo ][  8 ]:= aTotTPProd[ nTipo ][  8 ] + ( nSigno * ( (nSigno *(SD1->D1_VALIMP5+SD1->D1_VALIMP6)) * nTXMoneda ) )
+            aTotTPProd[ nTipo ][  9 ]:= aTotTPProd[ nTipo ][  9 ] + ( nSigno * ( SD1->D1_VALIMP9 * nTXMoneda ) )
+            aTotTPPROD[ nTipo ][ 10 ]:= aTotTPProd[ nTipo ][ 10 ] + ( nSigno * nRetIVA)
+            aTotTPProd[ nTipo ][ 11 ]:= aTotTPProd[ nTipo ][ 11 ] + ( nSigno * nRetIBB)
+            aTotTPProd[ nTipo ][ 12 ]:= aTotTPProd[ nTipo ][ 12 ] + IF( !SFC->(FOUND()), ( nSigno * ( SD2->D2_TOTAL * nTXMoneda  ) ), 0 )
+            aTotTPProd[ nTipo ][ 13 ]:= aTotTPProd[ nTipo ][ 13 ] +  nValBrut
+         Endif
+         SD1->( DbSkip( ) )
+      End
+   EndIf
+EndIf
+
+Return
+
+/*/
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFuno    ณ AjustaSX1บ Autor ณ Gilson da Silva   บ Data ณ  29.01.04    บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDescrio ณ Criacao de Perguntas no SX1                                บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ MATRAR2                                                    บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+/*/
+
+Static Function AjustaSX1( )
+
+Local aHelp := { }
+
+Aadd( aHelp, { {"Informe a Data Inicial"        }, {"Enter the Initial Date    "             }, {"Indique la Fecha Inicial    "         } } )
+Aadd( aHelp, { {"Informe a Data Final"          }, {"Enter the Final Date    "               }, {"Indique la Fecha Final    "           } } )
+Aadd( aHelp, { {"Selecione o Tipo do Titulo"    }, {"Enter the Bill Typee    "               }, {"Seleccione el Tipo del Titulo"        } } )
+Aadd( aHelp, { {"Informe o Formto do Relatorio" }, {"Enter the Report Format  "              }, {"Indique el Formato del Informe"       } } )
+Aadd( aHelp, { {"Selecione a Filial"            }, {"Enter the Branch   "                    }, {"Elija la Sucursal"                    } } )
+Aadd( aHelp, { {"Deseja imprimir o Resumo"      }, {"Would you like to printer the Summary"  }, {"Desea que se imprima el Resumen"      } } )
+Aadd( aHelp, { {"Totales por dia"               }, {"Totales por dia"                        }, {"Totales por dia"                      } } )
+
+
+PutSx1("MTRAR2","01","Data Inicial ?","ฟFecha Inicial ?", "Initial Date ?","mv_ch1","D",8,0,0,"G","","","","","mv_par01","","","","",;
+       "","","","","","","","","","","","",aHelp[1,1],aHelp[1,2],aHelp[1,3])
+
+PutSx1("MTRAR2","02","Data Final  ?","ฟFecha Final ?", "Final Date  ?","mv_ch2","D",8,0,0,"G","","","","","mv_par02","","","","",;
+       "","","","","","","","","","","","S",aHelp[2,1],aHelp[2,2],aHelp[2,3])
+
+PutSx1("MTRAR2","03","Incluir  ?","ฟIncluir ?", "Include ?","mv_ch3","N",1,0,1,"C","","","","","mv_par03","Ativos","Activos","Actives","",;
+       "Anulados","Anulados","Anull","Todos","Todos","All","","","","","","",aHelp[3,1],aHelp[3,2],aHelp[3,3])
+
+PutSx1("MTRAR2","04","Estilo   ?","ฟEstilo  ?", "Style  ?","mv_ch4","N",1,0,1,"C","","","","","mv_par04","Analitico","Analitico","Detailed","",;
+       "Resumido","Resumido","Summarized","","","","","","","","","",aHelp[4,1],aHelp[4,2],aHelp[4,3])
+
+PutSx1("MTRAR2","05","Filial   ?","ฟSucursale ?", "Branch  ?","mv_ch5","C",2,0,0,"G","","SM0","","","mv_par05","","","","",;
+       "","","","","","","","","","","SM0","",aHelp[5,1],aHelp[5,2],aHelp[5,3])
+
+PutSx1("MTRAR2","06","Resumo   ?","ฟResumen ?", "Resumen ?","mv_ch6","N",1,0,1,"C","","","","","mv_par06","Imprimir","Imprimir","Printer","",;
+       "Nao Imprimir","No Imprimir","Not Printer","","","","","","","","","",aHelp[6,1],aHelp[6,2],aHelp[6,3])
+
+PutSx1("MTRAR2","07","Total Diario   ?","Total Diario   ?", "Total Diario   ?","mv_ch7","N",1,0,1,"C","","","","","mv_par07","Imprimir","Imprimir","Printer","",;
+       "Nao Imprimir","No Imprimir","Not Printer","","","","","","","","","",aHelp[7,1],aHelp[7,2],aHelp[7,3])
+
+RETURN
+

@@ -1,0 +1,19 @@
+[Chr(27)+Chr(15)]
+                                                                                 [PADC(AllTrim( Str( TRB->VALOR, 10, 2 ) ),10,"*")]
+
+                                              [TRB->DIAEMI + Space(5) + TRB->MESEMI + Space(15) + TRB->ANOEMI]
+
+
+
+                               [TRB->ORDEN]
+                                          [PADR(TRB->IMPORT1,70,"-")]
+                                          [PADR(TRB->IMPORT2,70,"-")]
+
+
+
+
+
+
+
+
+
